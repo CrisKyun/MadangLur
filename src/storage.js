@@ -82,7 +82,9 @@ function normalisasiItem(item, indeks, defaults = {}) {
   const nama = item.nama.trim()
   const deskripsi = (item.deskripsi ?? '').trim()
   const tokoDefault = String(defaults?.toko_nama ?? '').trim() || TOKO_DEMO
-  const nomorDefault = defaults?.toko_nomor_wa || WHATSAPP_NUMBER
+  // Pakai ?? (bukan ||): nomor pemilik yang kosong tetap kosong, tidak diganti
+  // nomor demo milik toko lain. Fallback hanya saat pemanggil tidak mengirim nomor.
+  const nomorDefault = defaults?.toko_nomor_wa ?? WHATSAPP_NUMBER
 
   if (deskripsi.length > 300) {
     return gagal(`${label}: deskripsi maksimal 300 karakter.`)

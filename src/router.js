@@ -4,10 +4,11 @@
  * #/masuk     → form masuk
  * #/daftar    → form daftar akun penjual/pembeli
  * #/dashboard → dashboard penjual (butuh sesi penjual; guard di main.js)
+ * #/pembeli   → akun & daftar kontak toko untuk pembeli (guard di main.js)
  * #/admin     → panel admin (butuh sesi admin; guard di main.js)
  */
 
-const ROUTES = new Set(['/', '/dashboard', '/masuk', '/daftar', '/admin'])
+const ROUTES = new Set(['/', '/dashboard', '/pembeli', '/masuk', '/daftar', '/admin'])
 
 export function currentRoute() {
   const hash = window.location.hash.replace(/^#/, '')

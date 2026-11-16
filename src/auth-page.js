@@ -99,9 +99,35 @@ export function mountMasuk(root, { onSukses } = {}) {
   root.innerHTML = kartuAuth(`
     <h1 class="auth-title">Masuk ke MadangLur</h1>
     <p class="auth-sub">
-      Penjual mengelola produk toko; pembeli menjelajah katalog; admin mengelola akun.
+      Pilih peran akun Anda. Penjual membuka dashboard toko, pembeli membuka
+      akun &amp; katalog, admin membuka panel pengelolaan akun.
     </p>
     <form id="form-masuk" class="auth-form" novalidate>
+      <fieldset class="auth-role auth-role-3" aria-describedby="e-role">
+        <legend>Masuk sebagai</legend>
+        <label class="auth-role-option">
+          <input type="radio" name="role" value="penjual" checked />
+          <span class="auth-role-body">
+            <strong>Penjual</strong>
+            <small>Dashboard produk &amp; profil toko</small>
+          </span>
+        </label>
+        <label class="auth-role-option">
+          <input type="radio" name="role" value="pembeli" />
+          <span class="auth-role-body">
+            <strong>Pembeli</strong>
+            <small>Katalog &amp; kontak toko</small>
+          </span>
+        </label>
+        <label class="auth-role-option">
+          <input type="radio" name="role" value="admin" />
+          <span class="auth-role-body">
+            <strong>Admin</strong>
+            <small>Panel pengelolaan akun</small>
+          </span>
+        </label>
+      </fieldset>
+      <p class="auth-field-error" data-error="role" id="e-role"></p>
       <div class="auth-field">
         <label for="a-username">Username</label>
         <input id="a-username" name="username" type="text" autocomplete="username"
@@ -121,7 +147,8 @@ export function mountMasuk(root, { onSukses } = {}) {
       Belum punya akun? <a href="#/daftar">Daftar sekarang</a>
     </p>
     <p class="auth-hint">
-      Admin demo: <code>admin</code> / <code>Admin123!</code>
+      Akun admin bawaan: <code>admin</code> / <code>Admin123!</code> — pilih peran
+      Admin saat masuk.
     </p>
   `)
 
@@ -129,6 +156,7 @@ export function mountMasuk(root, { onSukses } = {}) {
   pasangForm(
     form,
     (data) => masuk({
+      role: data.get('role'),
       username: data.get('username'),
       sandi: data.get('sandi'),
     }),

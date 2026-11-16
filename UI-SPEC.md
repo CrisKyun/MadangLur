@@ -26,7 +26,7 @@ Changelog:
 | Navbar | Brand + Katalog + Masuk/Daftar (tamu) atau username + badge peran + menu role + Keluar | Dropdown akun, sidebar |
 | Routing | `#/`, `#/masuk`, `#/daftar`, `#/dashboard`, `#/admin` + guard role client-side | `#/login`, guard role JWT server |
 | Katalog | Hero, filter, grid, card, WA, empty state | Featured card span 2 kolom |
-| Auth | Form Masuk/Daftar, pemilih Penjual/Pembeli, error per field, sesi `localStorage`, admin seed | Login JWT server, widget akun seed |
+| Auth | Form Masuk/Daftar, pemilih peran (Masuk: Penjual/Pembeli/Admin; Daftar: Penjual/Pembeli), error per field, sesi `localStorage`, admin seed | Login JWT server, widget akun seed |
 | Dashboard | Header akun, kartu Profil Toko, 4 stat card, tabel produk sendiri, modal CRUD, export/import scoped | Sidebar, tab Profil Toko, kelola via API |
 | Admin | Stat global, tabel akun, toggle status, hapus, reset produk | Form tambah penjual, aksi via API |
 | Notifikasi | Toast + banner notice | — |
@@ -116,8 +116,8 @@ Semua nilai warna, tipografi, dan spasi menggunakan token CSS di `:root`. Implem
 
 | Properti | Nilai |
 |---|---|
-| Height | `58px` |
-| Position | `sticky`, `top: 0`, `z-index: 100` |
+| Height | `min-height: 58px` (bertambah bila menu membungkus) |
+| Position | `sticky` pada wrapper `#nav-root`, `top: 0`, `z-index: 100`; tinggi aktual disimpan di `--nav-h` |
 | Background | `var(--gula-jawa)` |
 | Border bottom | `2px solid var(--daun-salam)` |
 | Padding horizontal | `clamp(1rem, 4vw, 2.5rem)` |
@@ -132,14 +132,15 @@ Semua nilai warna, tipografi, dan spasi menggunakan token CSS di `:root`. Implem
 | Tombol "Daftar" | Belum login | `.nav-btn.nav-cta`; bg `var(--kunyit)` |
 | Tombol "Dashboard" | Sudah login sebagai penjual | `.nav-btn`; class `.active` saat di `#/dashboard` |
 | Tombol "Panel Admin" | Sudah login sebagai admin | `.nav-btn`; class `.active` saat di `#/admin` |
+| Tombol "Akun Saya" | Sudah login sebagai pembeli | `.nav-btn`; class `.active` saat di `#/pembeli` |
 | Username | Sudah login | `.nav-user`; teks `var(--santan-2)`, font-size `.8rem`, ellipsis 12ch |
 | `.role-badge` | Sudah login | Pill kecil; hijau untuk penjual, pandan untuk pembeli, kunyit untuk admin |
 | Tombol "Keluar" | Sudah login | `.nav-btn.nav-logout`; border `1px solid rgba(255,255,255,.2)` |
 
 > **Demo v0.6.0:** navbar dirender ulang setiap route berdasarkan `getSession()`. Tamu melihat
 > **Katalog · Masuk · Daftar**; penjual melihat **Katalog · Dashboard · username · badge
-> Penjual · Keluar**; pembeli melihat **Katalog · username · badge Pembeli · Keluar**; admin
-> melihat **Katalog · Panel Admin · username · badge Admin · Keluar**. Badge mengikuti
+> Penjual · Keluar**; pembeli melihat **Katalog · Akun Saya · username · badge Pembeli ·
+> Keluar**; admin melihat **Katalog · Panel Admin · username · badge Admin · Keluar**. Badge mengikuti
 > `role` akun; menu Dashboard/Panel Admin hanya tampil untuk peran yang berhak. Link aktif
 > memakai `.active` + `aria-current="page"`.
 
@@ -151,6 +152,7 @@ Semua nilai warna, tipografi, dan spasi menggunakan token CSS di `:root`. Implem
 | `#/login` (target) / `#/masuk` (demo) | Halaman Masuk | Redirect sesuai peran jika sudah masuk |
 | `#/daftar` (demo) | Halaman Daftar | Redirect sesuai peran jika sudah masuk |
 | `#/dashboard` | Dashboard Penjual | Tanpa sesi → `#/masuk`; bukan penjual → halaman sesuai peran + toast |
+| `#/pembeli` | Akun Pembeli | Tanpa sesi → `#/masuk`; bukan pembeli → halaman sesuai peran + toast |
 | `#/admin` | Panel Admin | Tanpa sesi → `#/masuk`; bukan admin → halaman sesuai peran + toast |
 
 **Redirect setelah login:**
@@ -208,7 +210,7 @@ Semua nilai warna, tipografi, dan spasi menggunakan token CSS di `:root`. Implem
 
 | Properti | Nilai |
 |---|---|
-| Position | `sticky`, `top: 58px`, `z-index: 90` |
+| Position | `sticky`, `top: var(--nav-h, 58px)` (tinggi navbar aktual), `z-index: 90` |
 | Background | `var(--santan)` |
 | Border bottom | `1px solid var(--wajan-muda)` |
 | Padding | `.75rem clamp(1rem, 4vw, 2.5rem)` |
@@ -309,8 +311,9 @@ Implementasi: `const text = encodeURIComponent(\`Halo, saya ingin memesan ${prod
 
 ## 4. Halaman: Masuk (`#/masuk`) & Daftar (`#/daftar`)
 
-> **Demo v0.6.0:** dua halaman auth sudah ada dengan gaya kartu di tengah. Daftar memiliki
-> pemilih peran **Penjual/Pembeli** (tanpa opsi admin); field toko hanya tampil untuk penjual.
+> **Demo v0.6.0:** dua halaman auth sudah ada dengan gaya kartu di tengah. Masuk memiliki
+> pemilih peran **Penjual/Pembeli/Admin** dan hanya menerima akun dengan peran yang sama;
+> Daftar hanya **Penjual/Pembeli** (tanpa opsi admin) dan field toko hanya tampil untuk penjual.
 > Halaman masuk menampilkan hint akun admin demo (`admin` / `Admin123!`). Target final tetap
 > login JWT di `#/login` dengan widget akun seed; spesifikasi kartu di bawah berlaku untuk demo.
 
@@ -338,11 +341,12 @@ Implementasi: `const text = encodeURIComponent(\`Halo, saya ingin memesan ${prod
 | `.auth-card` | bg putih, `border-radius var(--r-lg)`, `max-width 460px`, `shadow-pop` |
 | Padding card | `clamp(1.5rem, 4vw, 2.25rem)` |
 
-**Field Masuk:** Username (`autocomplete="username"`), Password (`current-password`).
+**Field Masuk:** Pemilih peran (Penjual/Pembeli/Admin), Username (`autocomplete="username"`),
+Password (`current-password`).
 **Field Daftar:** Pemilih peran (Penjual/Pembeli), Username, Nama Toko + Nomor WhatsApp
 (hanya penjual), Password, Ulangi Password.
 
-**Pemilih peran (`.auth-role`):** dua kartu radio berdampingan (1 kolom di ≤600px). Kartu
+**Pemilih peran (`.auth-role`):** dua kartu radio di Daftar, tiga di Masuk (1 kolom di ≤600px). Kartu
 terpilih memakai border `var(--daun-salam)` + bg `var(--pandan-muda)`. Radio disembunyikan
 secara visual tetapi tetap fokusabel; fokus memakai outline `var(--kunyit)`.
 
@@ -357,6 +361,7 @@ secara visual tetapi tetap fokusabel; fokus memakai outline `var(--kunyit)`.
 | Ulangi Password | sama dengan password | "Konfirmasi password tidak cocok." |
 | Login gagal | — | "Username atau password salah." (generik, tidak membocorkan username) |
 | Login nonaktif | — | "Akun Anda dinonaktifkan. Hubungi admin." |
+| Login peran salah | peran pilihan harus sama dengan peran akun | "Akun @{username} terdaftar sebagai {Peran}. Pilih peran {Peran} untuk masuk." |
 
 **Error & state:**
 - Error per field: `.auth-field-error.is-show` di bawah input; input diberi `aria-invalid="true"`;
@@ -787,14 +792,15 @@ sampai ditutup atau state berubah.
 
 ### 14.3 Auth lokal
 
-| Aspek | Demo v0.5.0 |
+| Aspek | Demo v0.6.0 |
 |---|---|
 | Route | `#/masuk` (form masuk), `#/daftar` (registrasi mandiri) |
 | Penyimpanan akun | `localStorage` key `madanglur:users:v1` (array akun) |
 | Penyimpanan sesi | `localStorage` key `madanglur:session:v1` (id akun) |
 | Hash password | SHA-256(`${salt}:${sandi}`) + salt acak 16 byte (Web Crypto) |
-| Guard | Tanpa sesi → `#/dashboard` dialihkan ke `#/masuk` + toast info |
-| Redirect | Setelah masuk/daftar → `#/dashboard`; sudah masuk → form auth dialihkan |
+| Login per peran | Form masuk memilih Penjual/Pembeli/Admin; peran harus cocok dengan akun |
+| Guard | Tanpa sesi → halaman terproteksi dialihkan ke `#/masuk` + toast info; peran salah → halaman sesuai peran |
+| Redirect | Setelah masuk/daftar → sesuai peran (admin `#/admin`, penjual `#/dashboard`, pembeli `#/`); sudah masuk → form auth dialihkan |
 | Navbar | Dirender ulang saat route berubah dan setelah logout |
 | Logout | Hapus `madanglur:session:v1`; akun tetap; toast "Anda telah keluar." |
 
@@ -808,13 +814,39 @@ Perilaku penting:
 
 ### 14.4 Perbedaan lain dari target
 
-- Tidak ada sidebar, profil toko, panel admin, atau role/status akun nyata.
+- Tidak ada sidebar; profil toko berupa kartu di atas dashboard, bukan tab.
 - Auth demo berbasis `localStorage` (SHA-256 + salt), bukan JWT + bcrypt di server.
-- Tabel dashboard masih menampilkan katalog bersama; belum difilter `toko_id`.
+- Tabel dashboard memfilter produk lewat `penjual_id` di client; belum ada `toko_id` dari server.
 - Card katalog berukuran seragam; featured card span 2 kolom belum diterapkan.
-- Nomor WA kosong memakai `WHATSAPP_NUMBER` sebagai fallback, bukan tombol disabled.
+- Nomor WA kosong membuat tombol WhatsApp nonaktif (tidak memakai nomor demo).
 - Produk baru/import memakai nama toko + nomor WA akun yang sedang masuk; field toko
   eksplisit pada payload import tetap dipertahankan.
+
+---
+
+## 15. Halaman: Akun Pembeli (`#/pembeli`)
+
+Halaman demo khusus akun pembeli; bukan bagian target MVP (target: pembeli tanpa akun).
+
+```
+┌──────────────────────────────────────────────────┐
+│ @pembeli · Pembeli                    [Katalog]  │
+│ Akun Pembeli                                     │
+│ [Informasi Akun: username, peran, status]        │
+│ [4 stat card]                                    │
+│ Daftar Toko & Nomor WhatsApp                     │
+│ ┌────────┬──────────────┬────────┬────────────┐  │
+│ │ Toko   │ Nomor WA     │ Produk │ Kontak     │  │
+│ └────────┴──────────────┴────────┴────────────┘  │
+└──────────────────────────────────────────────────┘
+```
+
+| Properti | Nilai |
+|---|---|
+| Guard | Tanpa sesi → `#/masuk`; bukan pembeli → halaman sesuai peran + toast |
+| Sumber data | Produk di store, dikelompokkan per `toko_nama` |
+| Kontak | `wa.me` dari `buildWhatsAppTokoUrl()`; nomor kosong → "Nomor belum diatur" |
+| Nomor | Mengikuti Profil Toko penjual; perubahan nomor langsung terlihat di sini |
 
 ---
 

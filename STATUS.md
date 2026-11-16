@@ -17,11 +17,11 @@ Tanggal: 2026-11-16
 | Versi | `0.6.0` (demo frontend + auth lokal 3 role) |
 | Stack | Vite + JavaScript vanilla, tanpa dependency tambahan |
 | Data | 8 produk demo + perubahan pengguna di `localStorage` |
-| Akun | 3 peran (`penjual`, `pembeli`, `admin`); registrasi publik hanya penjual/pembeli; admin di-seed otomatis |
+| Akun | 3 peran (`penjual`, `pembeli`, `admin`); login memilih peran dan harus cocok dengan akun; registrasi publik hanya penjual/pembeli; admin di-seed otomatis |
 | Password | SHA-256 + salt 16 byte via Web Crypto (demo, bukan bcrypt) |
 | Backend | Belum ada. Tidak ada Express, Supabase, JWT, atau API |
-| Guard | Client-side: dashboard hanya penjual, admin hanya admin, katalog untuk semua |
-| Route | `#/`, `#/masuk`, `#/daftar`, `#/dashboard`, `#/admin` |
+| Guard | Client-side: dashboard hanya penjual, panel admin hanya admin, halaman pembeli hanya pembeli, katalog untuk semua |
+| Route | `#/`, `#/masuk`, `#/daftar`, `#/dashboard`, `#/pembeli`, `#/admin` |
 | Build | `npm run build` sukses |
 | Test | Belum ada Vitest; verifikasi lewat build, skrip Node, E2E browser headless, dan checklist manual |
 
@@ -81,6 +81,8 @@ akun lewat API admin — lihat D-10 dan deviasi §4.
 | D-20 | Migrasi akun lama | ✅ | Akun tanpa `role`/`aktif` dianggap penjual aktif |
 | D-21 | Profil toko penjual | ✅ | Form nama toko + nomor WA; validasi; update akun |
 | D-22 | Sinkron nomor ke produk | ✅ | `sinkronProfilPenjual()` memperbarui `toko_nama`/`toko_nomor_wa` semua produk milik penjual |
+| D-23 | Login sesuai peran | ✅ | `#/masuk` memilih Penjual/Pembeli/Admin; peran pilihan harus cocok dengan peran akun |
+| D-24 | Halaman akun pembeli | ✅ | `#/pembeli`: info akun + daftar toko beserta nomor WA yang bisa dihubungi |
 
 ### 2.4 Dashboard toko (P-01 … P-08)
 
@@ -185,8 +187,9 @@ akun lewat API admin — lihat D-10 dan deviasi §4.
     statistik agar tetap sederhana tanpa sidebar.
 14. **Belum ada form tambah penjual di admin** (ADM-02/ADM-06). Akun dibuat lewat registrasi
     publik; admin hanya mengelola akun yang ada.
-15. **Nomor WA kosong → fallback.** `WHATSAPP_NUMBER` dipakai bila `toko_nomor_wa` kosong.
-    Target AC-UI04 meminta tombol disabled; demo memilih fallback.
+15. **Nomor WA kosong → tombol nonaktif.** Produk tanpa `toko_nomor_wa` tidak lagi memakai
+    `WHATSAPP_NUMBER`; tombol WhatsApp dinonaktifkan (sesuai AC-UI04) agar pembeli tidak
+    menghubungi nomor demo milik toko lain.
 16. **Card uniform.** Fitur "featured card span 2 kolom" di UI-SPEC §3.3 belum diterapkan.
 17. **Tanpa Vitest.** Fungsi murni diverifikasi dengan skrip Node sementara; belum ada file
     test di repo.
@@ -220,6 +223,7 @@ madanglur/
     ├── storage.js     ← localStorage produk, validasi payload, export
     ├── ui.js          ← navbar role-aware, katalog, hero, filter, toast, notice
     ├── dashboard.js   ← dashboard penjual, profil toko, tabel, modal, import/export
+    ├── pembeli.js     ← halaman akun pembeli: info akun, daftar toko & nomor WA
     └── style.css      ← token + seluruh style (auth, profil, admin)
 ```
 
@@ -231,7 +235,7 @@ Tidak ada folder `client/`, `server/`, `db/`, atau `public/`.
 
 | Pemeriksaan | Hasil |
 |---|---|
-| `npm run build` | ✅ Sukses (JS ±49,3 kB; CSS ±20,2 kB) |
+| `npm run build` | ✅ Sukses (JS ±55,9 kB; CSS ±21,1 kB) |
 | Auth/role unit (Node) | ✅ 50 pemeriksaan: seed admin, login admin, tolak role admin, daftar penjual/pembeli, migrasi akun lama, hash, sesi, profil, sinkron nomor, scoping produk, import scoped, status aktif, lindungi admin, hapus akun + produk |
 | E2E browser (Chrome headless) | ✅ 36 pemeriksaan: seed admin, login admin, registrasi penjual/pembeli, field toko kondisional, produk sendiri, ganti nomor → `wa.me` katalog, guard role, tabel admin, toggle status, login nonaktif ditolak, hapus akun, tanpa exception/console error |
 | Storage kosong | ✅ 8 produk contoh dimuat, admin di-seed otomatis |
@@ -242,9 +246,12 @@ Tidak ada folder `client/`, `server/`, `db/`, atau `public/`.
 | Export | ✅ JSON produk penjual, dapat diimpor balik |
 | Reset produk | ✅ Hanya dari panel admin; kembali ke 8 produk |
 | Sort/filter/search | ✅ Tidak berubah dari v0.5.0 |
-| Route & trailing slash | ✅ `#/`, `#/masuk`, `#/daftar`, `#/dashboard`, `#/admin` |
+| Route & trailing slash | ✅ `#/`, `#/masuk`, `#/daftar`, `#/dashboard`, `#/pembeli`, `#/admin` |
 | WhatsApp | ✅ `href` wa.me, `target="_blank"`, `rel="noopener"`, pesan otomatis |
 | Hash password | ✅ Password tidak tersimpan plaintext; hash + salt tersimpan |
+| Login per peran | ✅ Form masuk memilih Penjual/Pembeli/Admin; peran salah ditolak, peran benar masuk |
+| Halaman pembeli | ✅ `#/pembeli`: akun + daftar toko/nomor WA terbaru; guard peran; tanpa error konsol |
+| Sticky navbar + filter | ✅ Navbar `top: 0`; filter bar menempel tepat di bawahnya (1280 px & 375 px) |
 
 Checklist manual yang masih disarankan sebelum rilis:
 
@@ -253,7 +260,8 @@ Checklist manual yang masih disarankan sebelum rilis:
 - [x] Klik tombol WhatsApp produk stok > 0. *(tautan terverifikasi; membuka aplikasi WhatsApp tetap perlu dicek manusia)*
 - [x] Daftar penjual → dashboard → tambah/edit/hapus produk → kembali ke `#/`.
 - [x] Ubah nomor di Profil Toko → cek `href` WhatsApp produk di katalog.
-- [x] Daftar pembeli → guard dashboard/admin.
+- [x] Daftar pembeli → buka `#/pembeli` → guard dashboard/admin.
+- [x] Login dengan peran yang tidak cocok → ditolak dengan pesan peran yang benar.
 - [x] Admin → toggle status → login akun nonaktif ditolak → aktifkan kembali.
 - [x] Admin → hapus akun pembeli.
 - [x] Keluar → masuk lagi → reload; sesi dan produk bertahan.

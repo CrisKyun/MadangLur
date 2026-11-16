@@ -50,6 +50,7 @@ export const PESAN_AUTH = {
   usernameDipakai: 'Username sudah digunakan.',
   role: 'Pilih peran Penjual atau Pembeli.',
   roleAdmin: 'Akun admin tidak dapat didaftarkan dari halaman ini.',
+  roleMasuk: 'Pilih peran akun Anda: Penjual, Pembeli, atau Admin.',
   namaToko: 'Nama toko minimal 2 karakter.',
   namaTokoPanjang: 'Nama toko maksimal 40 karakter.',
   nomor: 'Nomor WA harus diawali 62, mis. 6281234500001.',
@@ -277,14 +278,16 @@ export function validateMasuk(input = {}) {
   const errors = {}
   const username = normalisasiUsername(input.username)
   const sandi = String(input.sandi ?? '')
+  const role = String(input.role ?? '').trim().toLowerCase()
 
+  if (!PERAN.includes(role)) errors.role = PESAN_AUTH.roleMasuk
   if (username === '') errors.username = PESAN_AUTH.usernameKosong
   if (sandi === '') errors.sandi = PESAN_AUTH.sandiKosong
 
   return {
     valid: Object.keys(errors).length === 0,
     errors,
-    data: { username, sandi },
+    data: { username, sandi, role: PERAN.includes(role) ? role : '' },
   }
 }
 
@@ -396,6 +399,17 @@ export async function masuk(input) {
 
   if (akun.aktif === false) {
     return { ok: false, errors: { umum: PESAN_AUTH.nonaktif } }
+  }
+
+  // Login sesuai peran: akun hanya bisa masuk lewat peran yang terdaftar.
+  if (akun.role !== hasil.data.role) {
+    const label = LABEL_PERAN[akun.role] ?? akun.role
+    return {
+      ok: false,
+      errors: {
+        umum: `Akun @${akun.username} terdaftar sebagai ${label}. Pilih peran ${label} untuk masuk.`,
+      },
+    }
   }
 
   if (!tulisItem(SESI_KEY, akun.id)) {

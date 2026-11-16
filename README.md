@@ -24,13 +24,16 @@ perubahan bertahan saat halaman dimuat ulang.
 - Indikator stok 3 level: Tersedia, Stok Menipis (≤ 5), Habis.
 - **Tiga peran akun**:
   - **Penjual** — dashboard produk + profil toko.
-  - **Pembeli** — katalog publik; tidak punya dashboard.
+  - **Pembeli** — katalog publik dan halaman **Akun Pembeli** (`#/pembeli`) berisi
+    daftar toko beserta nomor WhatsApp yang bisa dihubungi.
   - **Admin** — panel pengelolaan akun.
 - **Daftar** di `#/daftar` dengan pilihan peran **Penjual** atau **Pembeli**. Akun admin
   tidak dapat dibuat dari form publik.
 - **Admin bawaan** `admin` / `Admin123!` dibuat otomatis saat aplikasi pertama dijalankan.
-- **Masuk** di `#/masuk`; setelah berhasil diarahkan sesuai peran:
-  admin → `#/admin`, penjual → `#/dashboard`, pembeli → `#/`.
+- **Masuk** di `#/masuk` dengan memilih peran **Penjual**, **Pembeli**, atau **Admin**.
+  Akun hanya bisa masuk lewat peran yang terdaftar (pilih peran lain → pesan koreksi).
+  Setelah berhasil diarahkan sesuai peran: admin → `#/admin`, penjual → `#/dashboard`,
+  pembeli → `#/` (navbar menampilkan **Akun Saya**).
 - **Guard role**: dashboard hanya untuk penjual, panel admin hanya untuk admin; akses salah
   peran dialihkan dengan toast.
 - **Profil Toko** di dashboard penjual:
@@ -105,6 +108,7 @@ Tidak ada dependency selain Vite.
 | `#/masuk` | Form masuk | Sudah masuk → halaman sesuai peran |
 | `#/daftar` | Form daftar penjual/pembeli | Sudah masuk → halaman sesuai peran |
 | `#/dashboard` | Dashboard toko | Tanpa sesi → `#/masuk`; bukan penjual → halaman sesuai peran + toast |
+| `#/pembeli` | Akun & daftar kontak toko | Tanpa sesi → `#/masuk`; bukan pembeli → halaman sesuai peran + toast |
 | `#/admin` | Panel admin | Tanpa sesi → `#/masuk`; bukan admin → halaman sesuai peran + toast |
 
 Hash tidak dikenal akan diarahkan ke `#/`. Trailing slash seperti `#/dashboard/` juga diterima.
@@ -290,6 +294,7 @@ Contoh file import minimal:
     ├── storage.js     localStorage produk, validasi payload (termasuk penjual_id), export
     ├── ui.js          navbar role-aware, render katalog, hero, filter, toast, notice
     ├── dashboard.js   dashboard penjual, profil toko, tabel, modal, import/export
+    ├── pembeli.js     halaman akun pembeli: info akun, daftar toko & nomor WA
     └── style.css      token & seluruh style (termasuk auth, profil, admin)
 ```
 
@@ -311,7 +316,8 @@ di DevTools → Application → Local Storage. Akun admin akan dibuat lagi saat 
 ## Pengujian manual
 
 1. Buka `#/dashboard` tanpa masuk; pastikan dialihkan ke `#/masuk`.
-2. Masuk sebagai `admin` / `Admin123!`; pastikan diarahkan ke `#/admin`.
+2. Masuk dengan memilih peran **Admin** (`admin` / `Admin123!`); pastikan diarahkan ke `#/admin`.
+   Coba juga masuk dengan peran **Penjual** memakai akun admin → harus ditolak dengan pesan peran.
 3. Buka `#/daftar`; pastikan hanya ada pilihan Penjual/Pembeli (tanpa admin).
 4. Daftar penjual; isi field toko; pastikan diarahkan ke `#/dashboard` dan mulai tanpa produk.
 5. Tambah produk, lalu buka `#/`; pastikan produk tampil dan tombol WhatsApp memakai nomor
@@ -319,8 +325,10 @@ di DevTools → Application → Local Storage. Akun admin akan dibuat lagi saat 
 6. Ubah nomor WhatsApp di **Profil Toko**; kembali ke `#/`; pastikan `href` tombol WhatsApp
    produk tersebut memakai nomor baru.
 7. Keluar; daftar sebagai pembeli; pastikan field toko disembunyikan dan diarahkan ke `#/`.
-8. Sebagai pembeli, buka `#/dashboard` dan `#/admin`; pastikan dialihkan dengan toast.
-9. Masuk admin; nonaktifkan penjual; coba login penjual tersebut; pastikan ditolak.
+8. Sebagai pembeli, buka `#/pembeli` (daftar toko + nomor WA tampil), lalu `#/dashboard` dan
+   `#/admin`; pastikan dua halaman terakhir dialihkan dengan toast.
+9. Masuk admin (peran Admin); nonaktifkan penjual; coba login penjual tersebut (peran Penjual);
+   pastikan ditolak.
 10. Aktifkan kembali, lalu hapus akun pembeli; pastikan hilang dari tabel dan `localStorage`.
 11. Pastikan akun admin menampilkan "Dilindungi" dan tidak bisa dihapus/dinonaktifkan.
 12. Buka `#/`; cari "kopi", filter kategori, dan coba semua sort.
@@ -329,6 +337,8 @@ di DevTools → Application → Local Storage. Akun admin akan dibuat lagi saat 
 14. Coba import file rusak/field salah; pastikan data lama tidak hilang.
 15. Reset produk demo dari panel admin; pastikan kembali ke 8 produk.
 16. Reload; pastikan sesi, akun, dan produk bertahan.
+17. Keluar, lalu coba masuk dengan peran yang salah (akun pembeli memilih Penjual) → ditolak
+    dengan pesan yang menyebut peran akun yang benar.
 
 `npm run build` juga harus sukses tanpa error.
 

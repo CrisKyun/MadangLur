@@ -12,7 +12,6 @@ import {
   DEMO_PRODUCTS,
   KATEGORI,
   POLA_NOMOR_WA,
-  WHATSAPP_NUMBER,
   buatIdProduk,
 } from './products.js'
 import {
@@ -153,6 +152,25 @@ export function buildWhatsAppUrl(nomor, produk) {
 }
 
 /**
+ * Bangun tautan wa.me untuk menghubungi satu toko (dipakai halaman pembeli).
+ * Mengembalikan null bila nomor tidak valid.
+ * @param {string} nomor
+ * @param {string} namaToko
+ * @returns {string|null}
+ */
+export function buildWhatsAppTokoUrl(nomor, namaToko) {
+  const tujuan = normalisasiNomor(nomor)
+  if (!POLA_NOMOR_WA.test(tujuan)) return null
+
+  const nama = String(namaToko ?? '').trim()
+  const teks = nama
+    ? `Halo ${nama}, saya menemukan toko Anda di MadangLur.`
+    : 'Halo, saya menemukan toko Anda di MadangLur.'
+
+  return `https://wa.me/${tujuan}?text=${encodeURIComponent(teks)}`
+}
+
+/**
  * Pesan validasi produk (mengikuti UI-SPEC §9).
  */
 export const PESAN_VALIDASI = {
@@ -237,7 +255,8 @@ export function addProduk(input, toko = {}) {
     id: buatIdProduk(hasil.data.nama),
     ...hasil.data,
     toko_nama: toko?.nama_toko?.trim() || TOKO_DEMO,
-    toko_nomor_wa: toko?.nomor_wa || WHATSAPP_NUMBER,
+    // Nomor WA mengikuti profil penjual; tanpa nomor jangan pakai nomor demo.
+    toko_nomor_wa: String(toko?.nomor_wa ?? ''),
     penjual_id: String(toko?.id ?? ''),
   }
 

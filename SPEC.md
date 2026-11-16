@@ -566,10 +566,10 @@ AC-D18  Buka #/daftar → submit kosong/field salah → error per field + fokus 
 AC-D19  Daftar penjual valid → sesi aktif, diarahkan ke #/dashboard dengan nama toko + @username.
 AC-D20  Daftar pembeli valid → field toko tersembunyi, diarahkan ke #/, navbar badge Pembeli.
 AC-D21  Form daftar hanya menampilkan pilihan Penjual/Pembeli; tidak ada opsi admin.
-AC-D22  Login admin (admin / Admin123!) → diarahkan ke #/admin.
+AC-D22  Login admin (pilih peran Admin, admin / Admin123!) → diarahkan ke #/admin.
 AC-D23  Username duplikat → ditolak dengan pesan "Username sudah digunakan."
 AC-D24  Masuk dengan password salah / username tak ada → pesan generik "Username atau password salah."
-AC-D25  Login penjual → #/dashboard; login pembeli → #/; login admin → #/admin.
+AC-D25  Login penjual → #/dashboard; login pembeli → #/; login admin → #/admin; peran yang dipilih harus cocok dengan peran akun.
 AC-D26  Sesi bertahan setelah reload; navbar menampilkan username + badge peran + Keluar.
 AC-D27  Keluar → sesi dihapus, navbar kembali tamu, akun tetap tersimpan.
 AC-D28  Pengguna yang sudah masuk membuka #/masuk atau #/daftar → dialihkan sesuai peran.
@@ -581,6 +581,8 @@ AC-D33  Penjual membuka #/admin → dialihkan ke #/dashboard + toast.
 AC-D34  Admin menonaktifkan penjual → penjual tidak bisa login; admin bisa mengaktifkan kembali.
 AC-D35  Admin menghapus akun penjual → akun + produknya hilang; akun pembeli → akun hilang.
 AC-D36  Akun admin menampilkan "Dilindungi"; tidak bisa dinonaktifkan/dihapus.
+AC-D37  Login dengan peran yang tidak cocok → ditolak; pesan menyebut peran akun yang benar.
+AC-D38  Pembeli membuka #/pembeli → halaman akun tampil; daftar toko memakai nomor WA terbaru penjual.
 ```
 
 ### Autentikasi

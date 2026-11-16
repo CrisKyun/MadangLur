@@ -21,6 +21,9 @@
   --r-lg: 18px;
   --r-xl: 24px;
 
+  /* Tinggi navbar aktual; diperbarui main.js agar sticky filter bar tidak tertutup. */
+  --nav-h: 58px;
+
   --shadow-card: 0 2px 8px rgba(44, 26, 14, 0.08), 0 1px 2px rgba(44, 26, 14, 0.04);
   --shadow-pop: 0 8px 24px rgba(44, 26, 14, 0.14);
 }
@@ -78,15 +81,21 @@ h3 {
 }
 
 /* Navbar — UI-SPEC §2.1 */
-.nav {
+/* Sticky dipasang di wrapper: #nav-root setinggi navbar, sehingga navbar yang
+   sticky di dalamnya akan ikut tergulir (filter bar lalu menempel di ruang kosong). */
+#nav-root {
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.nav {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  height: 58px;
+  min-height: 58px;
   padding: 0 clamp(1rem, 4vw, 2.5rem);
   background: var(--gula-jawa);
   border-bottom: 2px solid var(--daun-salam);
@@ -284,16 +293,17 @@ h3 {
 /* Filter bar — UI-SPEC §3.2 */
 .filter-bar {
   position: sticky;
-  top: 58px;
+  top: var(--nav-h, 58px);
   z-index: 90;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
-  scroll-margin-top: 58px;
+  scroll-margin-top: calc(var(--nav-h, 58px) + 0.75rem);
   padding: 0.75rem clamp(1rem, 4vw, 2.5rem);
   background: var(--santan);
   border-bottom: 1px solid var(--wajan-muda);
+  box-shadow: 0 8px 14px -12px rgba(44, 26, 14, 0.55);
 }
 
 .filter-search {
@@ -463,6 +473,19 @@ h3 {
   margin: 0;
   color: var(--wajan);
   font-size: 0.75rem;
+}
+
+.card-kontak {
+  margin: 0;
+  color: var(--daun-salam);
+  font-size: 0.75rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.card-kontak-muted {
+  color: var(--wajan);
+  font-weight: 400;
 }
 
 .card-name {
@@ -890,6 +913,7 @@ h3 {
 }
 
 .btn-add {
+  display: inline-block;
   padding: 0.6rem 1.1rem;
   border: 0;
   border-radius: var(--r-sm);
@@ -898,6 +922,8 @@ h3 {
   font: inherit;
   font-size: 0.85rem;
   font-weight: 600;
+  text-align: center;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -1616,3 +1642,50 @@ h3 {
   }
 }
 
+/* Halaman akun pembeli */
+.buyer-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.9rem 1.25rem;
+  margin: 0;
+}
+
+.buyer-info div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.buyer-info dt {
+  color: var(--wajan);
+  font-size: 0.74rem;
+}
+
+.buyer-info dd {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.kontak-nomor {
+  color: var(--daun-salam);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.btn-wa-sm {
+  display: inline-block;
+  margin-top: 0;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+}
+
+/* Login: tiga pilihan peran */
+.auth-role.auth-role-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 760px) {
+  .auth-role.auth-role-3 {
+    grid-template-columns: 1fr;
+  }
+}

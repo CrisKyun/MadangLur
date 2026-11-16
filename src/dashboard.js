@@ -117,8 +117,10 @@ function renderProfil(akun) {
         <div>
           <h2 id="profil-title">Profil Toko</h2>
           <p class="profile-sub">
-            Nama toko dan nomor WhatsApp ini dipakai semua produk Anda.
-            Mengubah nomor di sini otomatis memperbarui tombol WhatsApp di katalog.
+            Nama toko dan nomor WhatsApp ini dipakai semua produk Anda. Nomor
+            yang tersimpan di sini menjadi nomor yang dihubungi pembeli: tombol
+            WhatsApp di katalog dan daftar toko halaman pembeli otomatis
+            mengikuti nomor ini setelah disimpan.
           </p>
         </div>
       </div>
@@ -137,7 +139,8 @@ function renderProfil(akun) {
         </div>
         <p class="profile-hint">
           Format: <code>62</code> diikuti nomor tanpa spasi, tanda <code>+</code>,
-          atau tanda hubung. Contoh: <code>6281234500001</code>.
+          atau tanda hubung. Contoh: <code>6281234500001</code>. Bila nomor
+          kosong, tombol WhatsApp produk Anda nonaktif di katalog.
         </p>
         <div class="profile-actions">
           <button type="submit" class="btn-save">Simpan Profil</button>

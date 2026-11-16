@@ -12,6 +12,7 @@ import { getSession, keluar, pastikanAdmin } from './auth.js'
 import { mountAdmin, updateAdmin } from './admin.js'
 import { mountDaftar, mountMasuk } from './auth-page.js'
 import { mountDashboard, updateDashboard } from './dashboard.js'
+import { mountPembeli, updatePembeli } from './pembeli.js'
 import { currentRoute, startRouter } from './router.js'
 import {
   filterProducts,
@@ -58,9 +59,32 @@ function updateNav(route) {
   })
 }
 
+let navObserver = null
+
+/**
+ * Simpan tinggi navbar yang sebenarnya ke --nav-h. Navbar bisa lebih tinggi
+ * dari 58 px saat menu membungkus (layar kecil/menu panjang), dan filter bar
+ * yang sticky perlu tahu tinggi itu agar tidak tertutup navbar.
+ */
+function syncNavHeight() {
+  const nav = navRoot.querySelector('.nav')
+  const tinggi = Math.ceil(nav?.getBoundingClientRect().height ?? 0) || 58
+  document.documentElement.style.setProperty('--nav-h', `${tinggi}px`)
+}
+
 function renderNav(route) {
   navRoot.innerHTML = renderNavbar(getSession())
   updateNav(route)
+  syncNavHeight()
+
+  navObserver?.disconnect()
+  navObserver = null
+
+  const nav = navRoot.querySelector('.nav')
+  if (nav && typeof ResizeObserver === 'function') {
+    navObserver = new ResizeObserver(syncNavHeight)
+    navObserver.observe(nav)
+  }
 }
 
 /** Halaman beranda sesuai peran akun. */
@@ -180,6 +204,20 @@ function renderRoute(route) {
     }
   }
 
+  // Halaman akun pembeli hanya untuk akun pembeli.
+  if (route === '/pembeli') {
+    if (!sesi) {
+      showToast('Silakan masuk dulu untuk membuka halaman akun.', 'info')
+      alihkan('/masuk')
+      return
+    }
+    if (sesi.role !== 'pembeli') {
+      showToast('Halaman akun ini khusus untuk akun pembeli.', 'error')
+      alihkan(ruteBeranda(sesi))
+      return
+    }
+  }
+
   activeRoute = route
   renderNav(route)
 
@@ -189,6 +227,9 @@ function renderRoute(route) {
   } else if (route === '/admin') {
     catalogRefs = null
     mountAdmin(mainEl, sesi)
+  } else if (route === '/pembeli') {
+    catalogRefs = null
+    mountPembeli(mainEl, sesi)
   } else if (route === '/masuk') {
     catalogRefs = null
     mountMasuk(mainEl, {
@@ -228,6 +269,7 @@ subscribe((state) => {
   updateNotice(state)
   if (activeRoute === '/dashboard') updateDashboard(mainEl)
   else if (activeRoute === '/admin') updateAdmin(mainEl)
+  else if (activeRoute === '/pembeli') updatePembeli(mainEl)
   else if (activeRoute === '/') updateCatalog(state)
 })
 

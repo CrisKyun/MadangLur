@@ -4,7 +4,7 @@
  * difilter diterima dari main.js (hasil store.filterProducts).
  */
 
-import { LABEL_STOK, WHATSAPP_NUMBER, stokStatus } from './products.js'
+import { LABEL_STOK, stokStatus } from './products.js'
 import { buildWhatsAppUrl } from './store.js'
 
 const KATEGORI_CLASS = {
@@ -49,6 +49,12 @@ export function escapeHtml(value) {
 
 export function formatRupiah(angka) {
   return `Rp ${Number(angka).toLocaleString('id-ID')}`
+}
+
+/** Nomor WA untuk ditampilkan, mis. 6281234500001 → +6281234500001. */
+export function tampilkanNomor(nomor) {
+  const digit = String(nomor ?? '').replace(/\D/g, '')
+  return digit ? `+${digit}` : ''
 }
 
 /** Nama class warna kategori (dipakai kartu katalog & badge tabel dashboard). */
@@ -110,7 +116,7 @@ export function renderNavbar(session = null) {
         ? '<a class="nav-btn" href="#/admin" data-route="/admin">Panel Admin</a>'
         : role === 'penjual'
           ? '<a class="nav-btn" href="#/dashboard" data-route="/dashboard">Dashboard</a>'
-          : ''
+          : '<a class="nav-btn" href="#/pembeli" data-route="/pembeli">Akun Saya</a>'
 
     menu = `
         <a class="nav-btn" href="#/" data-route="/">Katalog</a>
@@ -227,17 +233,19 @@ function renderCard(produk) {
     ? '<span class="badge-unggulan">★ Unggulan</span>'
     : ''
 
+  // Nomor tombol WA selalu milik produk/toko; tanpa nomor tombol dinonaktifkan
+  // (jangan pakai nomor demo agar pembeli tidak menghubungi toko yang salah).
+  const nomor = String(produk.toko_nomor_wa ?? '')
+  const nomorTampil = tampilkanNomor(nomor)
+  const hrefWa = stok === 'habis' ? null : buildWhatsAppUrl(nomor, produk)
+
   let aksi
   if (stok === 'habis') {
     aksi = '<button class="btn-wa" type="button" disabled>Habis</button>'
+  } else if (hrefWa) {
+    aksi = `<a class="btn-wa" href="${escapeHtml(hrefWa)}" target="_blank" rel="noopener">📱 Pesan via WhatsApp</a>`
   } else {
-    // Nomor toko diutamakan; WHATSAPP_NUMBER hanya fallback bila kosong.
-    const nomor = produk.toko_nomor_wa || WHATSAPP_NUMBER
-    const href = buildWhatsAppUrl(nomor, produk)
-
-    aksi = href
-      ? `<a class="btn-wa" href="${escapeHtml(href)}" target="_blank" rel="noopener">📱 Pesan via WhatsApp</a>`
-      : '<button class="btn-wa" type="button" disabled>WA belum diatur</button>'
+    aksi = '<button class="btn-wa" type="button" disabled>WA belum diatur</button>'
   }
 
   return `
@@ -253,6 +261,9 @@ function renderCard(produk) {
         <p class="card-price">${formatRupiah(produk.harga)}</p>
         <p class="stok ${statusStok.class}">
           <span class="stok-dot" aria-hidden="true"></span>${statusStok.label}
+        </p>
+        <p class="card-kontak${nomorTampil ? '' : ' card-kontak-muted'}">
+          ${nomorTampil ? `📱 ${escapeHtml(nomorTampil)}` : 'Nomor WA belum diatur penjual'}
         </p>
         ${aksi}
       </div>
