@@ -33,9 +33,9 @@ Changelog:
 | Sorting (nama, harga, stok) | Middleware `verifyJWT` / `authorize` |
 | Tombol WhatsApp + nomor per toko | Otorisasi/kepemilikan data di server |
 | Daftar/masuk/logout demo + sesi lokal | Endpoint `PUT /api/toko/:id` |
-| 3 peran + guard role client-side | Form admin buat penjual (ADM-02/06) |
+| 3 peran + guard role + form buat penjual (ADM-02/06) | Endpoint `POST /api/users` + otorisasi server |
 | Admin seed `admin` / `Admin123!` | Dashboard per `toko_id` dari JWT |
-| Dashboard penjual scoped + profil toko | Vitest, deployment, rate limiting |
+| Dashboard penjual scoped + profil toko + Vitest | Deployment, rate limiting |
 | Sinkron nomor WA penjual ke produk | Logging, security review |
 | Panel admin: daftar, status, hapus, reset | Manajemen password (ganti/lupa) |
 | Persistensi `localStorage` (produk, akun, sesi) | — |
@@ -136,11 +136,11 @@ Admin    → wajib JWT; dapat CRUD semua user; tidak dapat ubah produk toko lain
 > Seed script meng-hash otomatis — password plaintext hanya ada di `db/seed.sql`.
 >
 > **Demo v0.6.0** hanya memakai akun admin seed (`admin` / `Admin123!`), yang dibuat otomatis
-> oleh `pastikanAdmin()` dengan hash SHA-256 + salt tetap. Akun penjual/pembeli dibuat lewat
-> registrasi mandiri di `#/daftar` (username, peran, password; nama toko + nomor WA untuk
-> penjual) dan disimpan di `localStorage` dengan hash SHA-256 + salt acak. Role tersimpan pada
-> akun, produk penjual memakai `penjual_id`, dan status `aktif` dicek saat login. Ini deviasi
-> demo, bukan pengganti model `users`/`toko` target.
+> oleh `pastikanAdmin()` dengan hash SHA-256 + salt tetap. Pembeli mendaftar sendiri di
+> `#/daftar`; akun penjual dibuat admin dari `#/admin` (username, nama toko, nomor WA,
+> password). Semua akun disimpan di `localStorage` dengan hash SHA-256 + salt acak. Role
+> tersimpan pada akun, produk penjual memakai `penjual_id`, dan status `aktif` dicek saat
+> login. Ini deviasi demo, bukan pengganti model `users`/`toko` target.
 
 ---
 
@@ -519,8 +519,8 @@ PORT=3000
 - Refresh token / token rotation
 - Reset password via email
 - Upload gambar nyata (hanya URL/path statis atau SVG placeholder)
-- Registrasi mandiri oleh penjual (hanya admin yang buat akun) — *demo v0.6.0 menambah
-  `#/daftar` sebagai jalan pintas agar bisa dicoba tanpa seed akun; lihat STATUS D-10*
+- Registrasi mandiri oleh penjual (hanya admin yang buat akun) — *demo v0.6.0 mengikuti
+  aturan ini: `#/daftar` hanya untuk pembeli; lihat STATUS D-10/D-25*
 - Pembayaran online
 - Laporan penjualan / histori transaksi
 - Penjual multi-toko
@@ -563,9 +563,9 @@ AC-D15  Rusakkan nilai localStorage → reload → banner error + 8 produk conto
 AC-D16  Blokir localStorage → aplikasi tetap jalan + banner info.
 AC-D17  #/dashboard/, #/dashboard//, dan hash tak dikenal → route valid / fallback ke katalog.
 AC-D18  Buka #/daftar → submit kosong/field salah → error per field + fokus ke field pertama.
-AC-D19  Daftar penjual valid → sesi aktif, diarahkan ke #/dashboard dengan nama toko + @username.
+AC-D19  Admin membuat penjual (username, nama toko, nomor WA, password) → akun muncul di tabel dan dapat masuk lewat peran Penjual.
 AC-D20  Daftar pembeli valid → field toko tersembunyi, diarahkan ke #/, navbar badge Pembeli.
-AC-D21  Form daftar hanya menampilkan pilihan Penjual/Pembeli; tidak ada opsi admin.
+AC-D21  Form daftar hanya untuk pembeli; tidak ada opsi penjual maupun admin.
 AC-D22  Login admin (pilih peran Admin, admin / Admin123!) → diarahkan ke #/admin.
 AC-D23  Username duplikat → ditolak dengan pesan "Username sudah digunakan."
 AC-D24  Masuk dengan password salah / username tak ada → pesan generik "Username atau password salah."
@@ -583,6 +583,7 @@ AC-D35  Admin menghapus akun penjual → akun + produknya hilang; akun pembeli �
 AC-D36  Akun admin menampilkan "Dilindungi"; tidak bisa dinonaktifkan/dihapus.
 AC-D37  Login dengan peran yang tidak cocok → ditolak; pesan menyebut peran akun yang benar.
 AC-D38  Pembeli membuka #/pembeli → halaman akun tampil; daftar toko memakai nomor WA terbaru penjual.
+AC-D39  Registrasi dengan peran penjual ditolak dengan pesan bahwa akun penjual dibuat admin.
 ```
 
 ### Autentikasi

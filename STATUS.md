@@ -23,7 +23,7 @@ Tanggal: 2026-11-16
 | Guard | Client-side: dashboard hanya penjual, panel admin hanya admin, halaman pembeli hanya pembeli, katalog untuk semua |
 | Route | `#/`, `#/masuk`, `#/daftar`, `#/dashboard`, `#/pembeli`, `#/admin` |
 | Build | `npm run build` sukses |
-| Test | Belum ada Vitest; verifikasi lewat build, skrip Node, E2E browser headless, dan checklist manual |
+| Test | Vitest (`npm test`): 3 file, 16 tes — login per peran, registrasi/buat penjual, sinkron nomor WA, pengelompokan toko |
 
 > **Penting:** auth dan otorisasi peran di demo ini **bukan keamanan produksi**. Semua data
 > akun berada di browser pengguna dan dapat dibaca/diubah lewat DevTools. Target tetap JWT +
@@ -48,9 +48,8 @@ Legenda: ✅ selesai di demo · 🟡 padanan demo / sebagian · ⏳ belum dikerj
 | A-07 | Redirect sesuai role | ✅ | Admin → `#/admin`, penjual → `#/dashboard`, pembeli → `#/` |
 | A-08 | Logout → hapus sesi → katalog | ✅ | `keluar()` + tombol **Keluar** di navbar |
 
-Registrasi publik (`#/daftar`) **tidak ada di target SPEC** (target: penjual dibuat admin).
-Demo menambahkan daftar mandiri untuk penjual/pembeli agar aplikasi bisa dicoba tanpa membuat
-akun lewat API admin — lihat D-10 dan deviasi §4.
+Registrasi publik (`#/daftar`) **tidak ada di target SPEC** dan kini hanya untuk pembeli.
+Akun penjual dibuat admin dari panel (ADM-02/06) — lihat D-10, D-25, dan deviasi §4.
 
 ### 2.2 Katalog publik (F-01 … F-07)
 
@@ -68,7 +67,7 @@ akun lewat API admin — lihat D-10 dan deviasi §4.
 
 | ID | Fitur | Status | Implementasi demo |
 |---|---|---|---|
-| D-10 | Daftar akun penjual/pembeli | ✅ | `#/daftar`; pemilih peran; field toko hanya untuk penjual |
+| D-10 | Daftar akun pembeli | ✅ | `#/daftar`; tanpa pilihan peran/field toko; penjual dibuat admin |
 | D-11 | Masuk | ✅ | `#/masuk`; pesan gagal generik; akun nonaktif ditolak |
 | D-12 | Sesi bertahan | ✅ | `madanglur:session:v1`; tetap masuk setelah reload |
 | D-13 | Logout | ✅ | Hapus sesi; akun tetap tersimpan |
@@ -83,6 +82,7 @@ akun lewat API admin — lihat D-10 dan deviasi §4.
 | D-22 | Sinkron nomor ke produk | ✅ | `sinkronProfilPenjual()` memperbarui `toko_nama`/`toko_nomor_wa` semua produk milik penjual |
 | D-23 | Login sesuai peran | ✅ | `#/masuk` memilih Penjual/Pembeli/Admin; peran pilihan harus cocok dengan peran akun |
 | D-24 | Halaman akun pembeli | ✅ | `#/pembeli`: info akun + daftar toko beserta nomor WA yang bisa dihubungi |
+| D-25 | Admin membuat akun penjual | ✅ | Form di `#/admin`: username, nama toko, nomor WA, password; tidak membuat sesi baru |
 
 ### 2.4 Dashboard toko (P-01 … P-08)
 
@@ -102,11 +102,11 @@ akun lewat API admin — lihat D-10 dan deviasi §4.
 | ID | Fitur target | Status | Catatan |
 |---|---|---|---|
 | ADM-01 | Daftar akun + ringkasan toko | ✅ | Tabel akun di `#/admin`; jumlah produk dihitung dari state |
-| ADM-02 | Buat akun penjual baru | ⏳ | Belum ada form admin; gunakan registrasi publik atau seed |
+| ADM-02 | Buat akun penjual baru | ✅ | `buatPenjual()` dari form `#/admin`; belum ada endpoint server |
 | ADM-03 | Toggle status aktif | ✅ | `setAkunAktif()`; akun admin dilindungi |
 | ADM-04 | Hapus user + cascade toko/produk | ✅ | `hapusAkun()` + `hapusProdukPenjual()`; admin dilindungi |
 | ADM-05 | Tabel akun dengan aksi | ✅ | Username, peran, toko, WA, produk, status, aksi |
-| ADM-06 | Form tambah penjual | ⏳ | Belum ada |
+| ADM-06 | Form tambah penjual | ✅ | Kartu **Buat Akun Penjual** di atas tabel akun |
 | ADM-07 | Ringkasan global | ✅ | Stat card: total penjual, pembeli, produk global, toko aktif |
 
 ### 2.6 Acceptance criteria UI
@@ -172,8 +172,8 @@ akun lewat API admin — lihat D-10 dan deviasi §4.
 6. **Admin bawaan di client.** Kredensial `admin` / `Admin123!` dan hash seed tertanam di
    `auth.js`, serta ditampilkan sebagai hint di halaman masuk. Ini khusus demo; target memakai
    seed database dengan bcrypt dan tidak menampilkan kredensial.
-7. **Registrasi publik.** Target SPEC membuat penjual lewat admin; demo membuka registrasi
-   penjual/pembeli. Admin tidak dapat didaftarkan dari form.
+7. **Registrasi hanya pembeli.** Sama seperti target, akun penjual dibuat admin; form publik
+   `#/daftar` hanya membuat akun pembeli. Admin tidak dapat didaftarkan dari form.
 8. **Peran pembeli adalah akun.** SPEC mendefinisikan pembeli sebagai pengunjung tanpa akun;
    demo memberi opsi akun pembeli agar login/redirect peran dapat dicoba tanpa backend.
 9. **Kepemilikan produk di client.** `penjual_id` disimpan di produk dan dicek di `store.js`.
@@ -185,14 +185,14 @@ akun lewat API admin — lihat D-10 dan deviasi §4.
 12. **Reset demo dipindah ke admin.** Dashboard penjual tidak lagi punya tombol reset global.
 13. **Profil toko berupa kartu.** UI-SPEC target memakai tab/sidebar; demo memakai kartu di atas
     statistik agar tetap sederhana tanpa sidebar.
-14. **Belum ada form tambah penjual di admin** (ADM-02/ADM-06). Akun dibuat lewat registrasi
-    publik; admin hanya mengelola akun yang ada.
+14. **Form penjual hanya di client.** ADM-02/06 berjalan di `#/admin` dengan `buatPenjual()`;
+    belum ada endpoint `POST /api/users` atau otorisasi server.
 15. **Nomor WA kosong → tombol nonaktif.** Produk tanpa `toko_nomor_wa` tidak lagi memakai
     `WHATSAPP_NUMBER`; tombol WhatsApp dinonaktifkan (sesuai AC-UI04) agar pembeli tidak
     menghubungi nomor demo milik toko lain.
 16. **Card uniform.** Fitur "featured card span 2 kolom" di UI-SPEC §3.3 belum diterapkan.
-17. **Tanpa Vitest.** Fungsi murni diverifikasi dengan skrip Node sementara; belum ada file
-    test di repo.
+17. **Vitest terbatas pada logika demo.** `npm test` mencakup login per peran, registrasi/buat
+    penjual, sinkron nomor WA, dan pengelompokan toko; UI tetap diuji manual/build.
 18. **Tanpa aset gambar.** Hanya emoji lokal; tidak ada gambar/font berhak cipta.
 
 ---
@@ -224,6 +224,9 @@ madanglur/
     ├── ui.js          ← navbar role-aware, katalog, hero, filter, toast, notice
     ├── dashboard.js   ← dashboard penjual, profil toko, tabel, modal, import/export
     ├── pembeli.js     ← halaman akun pembeli: info akun, daftar toko & nomor WA
+    ├── auth.test.js   ← tes login per peran, registrasi pembeli, buat penjual
+    ├── store.test.js  ← tes sinkron nomor WA ke produk & tautan wa.me
+    ├── pembeli.test.js ← tes pengelompokan toko halaman pembeli
     └── style.css      ← token + seluruh style (auth, profil, admin)
 ```
 
@@ -235,7 +238,9 @@ Tidak ada folder `client/`, `server/`, `db/`, atau `public/`.
 
 | Pemeriksaan | Hasil |
 |---|---|
-| `npm run build` | ✅ Sukses (JS ±55,9 kB; CSS ±21,1 kB) |
+| `npm run build` | ✅ Sukses (JS ±57,3 kB; CSS ±21,1 kB) |
+| `npm test` | ✅ Vitest 3 file, 16 tes lulus (auth, store, pembeli) |
+| Buat penjual oleh admin | ✅ Form `#/admin`; akun muncul di tabel & bisa login lewat peran Penjual (browser) |
 | Auth/role unit (Node) | ✅ 50 pemeriksaan: seed admin, login admin, tolak role admin, daftar penjual/pembeli, migrasi akun lama, hash, sesi, profil, sinkron nomor, scoping produk, import scoped, status aktif, lindungi admin, hapus akun + produk |
 | E2E browser (Chrome headless) | ✅ 36 pemeriksaan: seed admin, login admin, registrasi penjual/pembeli, field toko kondisional, produk sendiri, ganti nomor → `wa.me` katalog, guard role, tabel admin, toggle status, login nonaktif ditolak, hapus akun, tanpa exception/console error |
 | Storage kosong | ✅ 8 produk contoh dimuat, admin di-seed otomatis |
@@ -276,12 +281,13 @@ Checklist manual yang masih disarankan sebelum rilis:
 - [x] Versi `package.json` + `package-lock.json` = `0.6.0`
 - [x] README, STATUS, SPEC, UI-SPEC, TASKS, CATATAN konsisten dengan v0.6.0
 - [x] Dokumen menjelaskan demo vs target tanpa saling bertentangan
-- [x] Tiga peran + registrasi penjual/pembeli + admin seed berjalan tanpa backend
+- [x] Tiga peran + registrasi pembeli + pembuatan penjual oleh admin + admin seed berjalan tanpa backend
 - [x] Nomor HP penjual tersinkron ke produk dan tautan WhatsApp katalog
 - [x] Dashboard penjual dan panel admin dijaga sesuai peran
 - [x] Admin tidak dapat didaftarkan dari form publik
 - [x] Auth/otorisasi demo ditandai bukan keamanan produksi di README + STATUS
 - [x] `npm run build` sukses
+- [x] `npm test` (Vitest) lulus
 - [x] Unit Node + E2E browser lulus
 - [ ] Commit akhir (tanpa `node_modules/`, `dist/`, `.env`)
 
@@ -296,9 +302,9 @@ Checklist manual yang masih disarankan sebelum rilis:
    middleware `verifyJWT`/`authorize`, cek status aktif, redirect per role.
 4. **M5:** pindahkan profil toko + kepemilikan produk ke server (`toko_id`/JWT), dashboard
    per toko.
-5. **M6:** lengkapi panel admin dengan form buat penjual (ADM-02/ADM-06) dan endpoint server.
-6. **M7:** Vitest untuk `filterProducts`, `validateProduk`, `buildWhatsAppUrl`, validator import,
-   `validateDaftar`/`validateMasuk`, serta helper ownership/sinkron profil.
+5. **M6:** pindahkan pembuatan penjual (ADM-02/06) ke endpoint server + otorisasi admin.
+6. **M7:** perluas Vitest ke `filterProducts`, `validateProduk`, validator import, serta helper
+   ownership/sinkron profil (login per peran, sinkron WA, dan pengelompokan toko sudah ada).
 7. **M8–M9:** security review, README final, commit.
 
 Selama target belum dikerjakan, jangan menandai item M1–M9 di `TASKS.md` sebagai selesai

@@ -26,7 +26,7 @@ Changelog:
 | Navbar | Brand + Katalog + Masuk/Daftar (tamu) atau username + badge peran + menu role + Keluar | Dropdown akun, sidebar |
 | Routing | `#/`, `#/masuk`, `#/daftar`, `#/dashboard`, `#/admin` + guard role client-side | `#/login`, guard role JWT server |
 | Katalog | Hero, filter, grid, card, WA, empty state | Featured card span 2 kolom |
-| Auth | Form Masuk/Daftar, pemilih peran (Masuk: Penjual/Pembeli/Admin; Daftar: Penjual/Pembeli), error per field, sesi `localStorage`, admin seed | Login JWT server, widget akun seed |
+| Auth | Form Masuk/Daftar, pemilih peran (Masuk: Penjual/Pembeli/Admin; Daftar: pembeli), error per field, sesi `localStorage`, admin seed | Login JWT server, widget akun seed |
 | Dashboard | Header akun, kartu Profil Toko, 4 stat card, tabel produk sendiri, modal CRUD, export/import scoped | Sidebar, tab Profil Toko, kelola via API |
 | Admin | Stat global, tabel akun, toggle status, hapus, reset produk | Form tambah penjual, aksi via API |
 | Notifikasi | Toast + banner notice | — |
@@ -313,8 +313,8 @@ Implementasi: `const text = encodeURIComponent(\`Halo, saya ingin memesan ${prod
 
 > **Demo v0.6.0:** dua halaman auth sudah ada dengan gaya kartu di tengah. Masuk memiliki
 > pemilih peran **Penjual/Pembeli/Admin** dan hanya menerima akun dengan peran yang sama;
-> Daftar hanya **Penjual/Pembeli** (tanpa opsi admin) dan field toko hanya tampil untuk penjual.
-> Halaman masuk menampilkan hint akun admin demo (`admin` / `Admin123!`). Target final tetap
+> Daftar hanya untuk **pembeli** (tanpa pilihan peran/field toko). Akun penjual dibuat admin
+> dari panel. Halaman masuk menampilkan hint akun admin demo (`admin` / `Admin123!`). Target final tetap
 > login JWT di `#/login` dengan widget akun seed; spesifikasi kartu di bawah berlaku untuk demo.
 
 ```
@@ -343,20 +343,19 @@ Implementasi: `const text = encodeURIComponent(\`Halo, saya ingin memesan ${prod
 
 **Field Masuk:** Pemilih peran (Penjual/Pembeli/Admin), Username (`autocomplete="username"`),
 Password (`current-password`).
-**Field Daftar:** Pemilih peran (Penjual/Pembeli), Username, Nama Toko + Nomor WhatsApp
-(hanya penjual), Password, Ulangi Password.
+**Field Daftar:** Username, Password, Ulangi Password (tanpa peran/field toko).
 
-**Pemilih peran (`.auth-role`):** dua kartu radio di Daftar, tiga di Masuk (1 kolom di ≤600px). Kartu
+**Pemilih peran (`.auth-role`):** tiga kartu radio di Masuk (1 kolom di ≤760px). Kartu
 terpilih memakai border `var(--daun-salam)` + bg `var(--pandan-muda)`. Radio disembunyikan
 secara visual tetapi tetap fokusabel; fokus memakai outline `var(--kunyit)`.
 
 | Field | Aturan demo | Pesan |
 |---|---|---|
-| Peran | hanya `penjual`/`pembeli` | "Pilih peran Penjual atau Pembeli." / "Akun admin tidak dapat didaftarkan dari halaman ini." |
+| Peran saat daftar | hanya `pembeli` | "Pendaftaran mandiri hanya untuk pembeli. Akun penjual dibuat oleh admin." / "Akun admin tidak dapat didaftarkan dari halaman ini." |
 | Username | 3–20 karakter `[a-z0-9_]`, dinormalisasi lowercase | "Username 3–20 karakter: huruf, angka, atau garis bawah." |
 | Username | unik | "Username sudah digunakan." |
-| Nama Toko | wajib untuk penjual, 2–40 karakter | "Nama toko minimal 2 karakter." / "Nama toko maksimal 40 karakter." |
-| Nomor WA | opsional untuk penjual; `^62[0-9]{8,}$` | "Nomor WA harus diawali 62, mis. 6281234500001." |
+| Nama Toko (form admin) | wajib, 2–40 karakter | "Nama toko minimal 2 karakter." / "Nama toko maksimal 40 karakter." |
+| Nomor WA (admin/penjual) | opsional; `^62[0-9]{8,}$` | "Nomor WA harus diawali 62, mis. 6281234500001." |
 | Password | 6–72 karakter | "Password minimal 6 karakter." |
 | Ulangi Password | sama dengan password | "Konfirmasi password tidak cocok." |
 | Login gagal | — | "Username atau password salah." (generik, tidak membocorkan username) |
@@ -476,14 +475,19 @@ Setelah simpan: toast sukses menyebut jumlah produk yang nomornya ikut diperbaru
 ## 6. Halaman: Panel Admin (`#/admin`)
 
 > **Demo v0.6.0:** panel admin sudah ada di `#/admin`, hanya untuk akun berperan admin.
-> Layout belum memakai sidebar: header + tombol **Reset Produk Demo** + stat card + tabel akun.
-> Form tambah penjual (ADM-02/06) belum diimplementasikan.
+> Layout belum memakai sidebar: header + tombol **Reset Produk Demo** + form **Buat Akun
+> Penjual** + stat card + tabel akun.
 
 ### 6.1 Layout
 
 Target memakai sidebar + main seperti dashboard, dengan label "Admin Panel" dan satu item menu
 "Kelola Penjual". Demo memakai layout satu kolom: eyebrow "Masuk sebagai @admin · Admin",
 judul **Panel Admin**, deskripsi singkat, tombol **Reset Produk Demo**, stat card, lalu tabel akun.
+
+Form **Buat Akun Penjual** (ADM-02/06): kartu `.profile-card` di atas stat card berisi field
+Username, Nama Toko, Nomor WhatsApp (opsional), Password, dan Ulangi Password. Submit
+memanggil `buatPenjual()` dan **tidak** membuat sesi baru — admin tetap masuk; akun langsung
+muncul di tabel.
 
 ### 6.2 Global Stats (`.stat-row`)
 
@@ -794,11 +798,12 @@ sampai ditutup atau state berubah.
 
 | Aspek | Demo v0.6.0 |
 |---|---|
-| Route | `#/masuk` (form masuk), `#/daftar` (registrasi mandiri) |
+| Route | `#/masuk` (form masuk), `#/daftar` (registrasi pembeli) |
 | Penyimpanan akun | `localStorage` key `madanglur:users:v1` (array akun) |
 | Penyimpanan sesi | `localStorage` key `madanglur:session:v1` (id akun) |
 | Hash password | SHA-256(`${salt}:${sandi}`) + salt acak 16 byte (Web Crypto) |
 | Login per peran | Form masuk memilih Penjual/Pembeli/Admin; peran harus cocok dengan akun |
+| Buat penjual | Form admin di `#/admin` memanggil `buatPenjual()`; tidak membuat sesi baru |
 | Guard | Tanpa sesi → halaman terproteksi dialihkan ke `#/masuk` + toast info; peran salah → halaman sesuai peran |
 | Redirect | Setelah masuk/daftar → sesuai peran (admin `#/admin`, penjual `#/dashboard`, pembeli `#/`); sudah masuk → form auth dialihkan |
 | Navbar | Dirender ulang saat route berubah dan setelah logout |

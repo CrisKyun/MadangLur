@@ -9,6 +9,7 @@
 
 import {
   LABEL_PERAN,
+  buatPenjual,
   hapusAkun,
   muatAkun,
   setAkunAktif,
@@ -38,6 +39,52 @@ export function mountAdmin(root, sesi) {
           Reset Produk Demo
         </button>
       </div>
+      <section class="profile-card" aria-labelledby="penjual-baru-title">
+        <div class="profile-head">
+          <div>
+            <h2 id="penjual-baru-title">Buat Akun Penjual</h2>
+            <p class="profile-sub">
+              Registrasi mandiri hanya untuk pembeli. Buat akun penjual di sini,
+              lalu berikan username dan password kepada penjual tersebut.
+            </p>
+          </div>
+        </div>
+        <form id="form-penjual" class="profile-form" novalidate>
+          <div class="profile-grid">
+            <div class="form-field">
+              <label for="j-username">Username</label>
+              <input id="j-username" name="username" type="text" autocomplete="off"
+                minlength="3" maxlength="20" placeholder="mis. toko_osing" required />
+            </div>
+            <div class="form-field">
+              <label for="j-nama-toko">Nama Toko</label>
+              <input id="j-nama-toko" name="nama_toko" type="text" maxlength="40"
+                placeholder="mis. Toko Osing Jaya" required />
+            </div>
+            <div class="form-field">
+              <label for="j-nomor">Nomor WhatsApp <span class="auth-optional">(opsional)</span></label>
+              <input id="j-nomor" name="nomor_wa" type="tel" inputmode="numeric"
+                placeholder="6281234500001" />
+            </div>
+            <div class="form-field">
+              <label for="j-sandi">Password</label>
+              <input id="j-sandi" name="sandi" type="password" autocomplete="new-password"
+                minlength="6" maxlength="72" required />
+            </div>
+            <div class="form-field">
+              <label for="j-sandi2">Ulangi Password</label>
+              <input id="j-sandi2" name="sandi2" type="password" autocomplete="new-password"
+                minlength="6" maxlength="72" required />
+            </div>
+          </div>
+          <p class="profile-hint">
+            Nomor WhatsApp bisa diubah penjual kapan saja lewat Profil Toko.
+          </p>
+          <div class="profile-actions">
+            <button type="submit" class="btn-save">Buat Akun Penjual</button>
+          </div>
+        </form>
+      </section>
       <div id="admin-body"></div>
     </section>
   `
@@ -250,6 +297,42 @@ function resetProduk() {
   showToast('Produk contoh dipulihkan.', 'info')
 }
 
+async function simpanPenjual(root, form) {
+  const data = new FormData(form)
+  const tombol = form.querySelector('button[type="submit"]')
+  if (tombol) {
+    tombol.disabled = true
+    tombol.textContent = 'Menyimpan…'
+  }
+
+  const hasil = await buatPenjual({
+    username: data.get('username'),
+    nama_toko: data.get('nama_toko'),
+    nomor_wa: data.get('nomor_wa'),
+    sandi: data.get('sandi'),
+    sandi2: data.get('sandi2'),
+  })
+
+  if (tombol) {
+    tombol.disabled = false
+    tombol.textContent = 'Buat Akun Penjual'
+  }
+
+  if (!hasil.ok) {
+    const [field, pesan] = Object.entries(hasil.errors)[0] ?? [
+      'umum',
+      'Gagal membuat akun penjual.',
+    ]
+    showToast(pesan, 'error')
+    form.querySelector(`[name="${field}"]`)?.focus()
+    return
+  }
+
+  form.reset()
+  updateAdmin(root)
+  showToast(`Akun penjual @${hasil.akun.username} dibuat.`, 'success')
+}
+
 function bindEvents(root) {
   root.addEventListener('click', (event) => {
     const aksi = event.target.closest('[data-action]')
@@ -266,5 +349,11 @@ function bindEvents(root) {
         resetProduk()
         break
     }
+  })
+
+  root.addEventListener('submit', (event) => {
+    if (!event.target.matches('#form-penjual')) return
+    event.preventDefault()
+    void simpanPenjual(root, event.target)
   })
 }

@@ -47,7 +47,7 @@ export function updatePembeli(root) {
  * Kelompokkan produk per toko (nama toko), dengan nomor WA terakhir yang
  * tersimpan pada produk toko tersebut.
  */
-function daftarToko(products) {
+export function daftarToko(products) {
   const peta = new Map()
 
   for (const produk of products) {

@@ -169,53 +169,18 @@ export function mountMasuk(root, { onSukses } = {}) {
 
 export function mountDaftar(root, { onSukses } = {}) {
   root.innerHTML = kartuAuth(`
-    <h1 class="auth-title">Buat akun MadangLur</h1>
+    <h1 class="auth-title">Buat akun pembeli</h1>
     <p class="auth-sub">
-      Daftar sebagai penjual untuk mengelola toko, atau sebagai pembeli untuk
-      menjelajah katalog dan menghubungi penjual.
+      Pendaftaran mandiri hanya untuk pembeli. Ingin berjualan di MadangLur?
+      Minta admin membuatkan akun penjual untuk Anda.
     </p>
     <form id="form-daftar" class="auth-form" novalidate>
-      <fieldset class="auth-role" aria-describedby="e-role">
-        <legend>Daftar sebagai</legend>
-        <label class="auth-role-option">
-          <input type="radio" name="role" value="penjual" checked />
-          <span class="auth-role-body">
-            <strong>Penjual</strong>
-            <small>Kelola produk &amp; nomor WhatsApp toko</small>
-          </span>
-        </label>
-        <label class="auth-role-option">
-          <input type="radio" name="role" value="pembeli" />
-          <span class="auth-role-body">
-            <strong>Pembeli</strong>
-            <small>Jelajahi katalog dan pesan via WhatsApp</small>
-          </span>
-        </label>
-      </fieldset>
-      <p class="auth-field-error" data-error="role" id="e-role"></p>
       <div class="auth-field">
         <label for="a-username">Username</label>
         <input id="a-username" name="username" type="text" autocomplete="username"
           minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}"
-          placeholder="mis. toko_osing" required ${inputAtribut('username')} />
+          placeholder="mis. pembeli_osing" required ${inputAtribut('username')} />
         ${fieldError('username')}
-      </div>
-      <div id="daftar-toko-fields" class="auth-store-fields">
-        <div class="auth-field">
-          <label for="a-nama-toko">Nama Toko</label>
-          <input id="a-nama-toko" name="nama_toko" type="text" autocomplete="organization"
-            maxlength="40" placeholder="mis. Toko Osing Jaya" ${inputAtribut('nama_toko')} />
-          ${fieldError('nama_toko')}
-        </div>
-        <div class="auth-field">
-          <label for="a-nomor">Nomor WhatsApp <span class="auth-optional">(opsional)</span></label>
-          <input id="a-nomor" name="nomor_wa" type="tel" inputmode="numeric"
-            autocomplete="tel" placeholder="6281234500001" ${inputAtribut('nomor_wa')} />
-          ${fieldError('nomor_wa')}
-        </div>
-        <p class="auth-hint auth-hint-left">
-          Nomor WhatsApp bisa diubah kapan saja lewat Profil Toko di dashboard.
-        </p>
       </div>
       <div class="auth-field">
         <label for="a-sandi">Password</label>
@@ -235,47 +200,18 @@ export function mountDaftar(root, { onSukses } = {}) {
     <p class="auth-switch">
       Sudah punya akun? <a href="#/masuk">Masuk di sini</a>
     </p>
+    <p class="auth-hint">
+      Akun penjual dibuat oleh admin dari Panel Admin, bukan dari halaman ini.
+    </p>
   `)
 
   const form = root.querySelector('#form-daftar')
-  const tokoFields = form.querySelector('#daftar-toko-fields')
-  const inputToko = tokoFields.querySelectorAll('input')
-
-  /** Tampilkan field toko hanya untuk penjual; field pembeli dinonaktifkan. */
-  function aturPeran() {
-    const peran =
-      form.querySelector('input[name="role"]:checked')?.value ?? 'penjual'
-    const penjual = peran === 'penjual'
-
-    tokoFields.hidden = !penjual
-    inputToko.forEach((input) => {
-      input.disabled = !penjual
-      if (!penjual) input.removeAttribute('aria-invalid')
-    })
-
-    if (!penjual) {
-      ;['nama_toko', 'nomor_wa'].forEach((kunci) => {
-        const wadah = form.querySelector(`[data-error="${kunci}"]`)
-        if (wadah) {
-          wadah.textContent = ''
-          wadah.classList.remove('is-show')
-        }
-      })
-    }
-  }
-
-  form.querySelectorAll('input[name="role"]').forEach((radio) => {
-    radio.addEventListener('change', aturPeran)
-  })
-  aturPeran()
 
   pasangForm(
     form,
     (data) => daftarAkun({
-      role: data.get('role'),
+      role: 'pembeli',
       username: data.get('username'),
-      nama_toko: data.get('nama_toko'),
-      nomor_wa: data.get('nomor_wa'),
       sandi: data.get('sandi'),
       sandi2: data.get('sandi2'),
     }),

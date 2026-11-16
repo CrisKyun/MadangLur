@@ -20,7 +20,7 @@ export const SESI_KEY = 'madanglur:session:v1'
 export const PERAN = ['penjual', 'pembeli', 'admin']
 
 /** Peran yang boleh dibuat lewat form registrasi publik. */
-export const PERAN_PUBLIK = ['penjual', 'pembeli']
+export const PERAN_PUBLIK = ['pembeli']
 
 export const LABEL_PERAN = {
   penjual: 'Penjual',
@@ -48,7 +48,7 @@ export const PESAN_AUTH = {
   username: 'Username 3–20 karakter: huruf, angka, atau garis bawah.',
   usernameKosong: 'Username wajib diisi.',
   usernameDipakai: 'Username sudah digunakan.',
-  role: 'Pilih peran Penjual atau Pembeli.',
+  roleDaftar: 'Pendaftaran mandiri hanya untuk pembeli. Akun penjual dibuat oleh admin.',
   roleAdmin: 'Akun admin tidak dapat didaftarkan dari halaman ini.',
   roleMasuk: 'Pilih peran akun Anda: Penjual, Pembeli, atau Admin.',
   namaToko: 'Nama toko minimal 2 karakter.',
@@ -226,33 +226,21 @@ export function pastikanAdmin() {
 }
 
 /**
- * Validasi form daftar (fungsi murni; tidak menyentuh storage).
- * Registrasi publik hanya menerima peran penjual/pembeli. Field toko hanya
- * divalidasi/disimpan untuk penjual.
- * @param {{ username?: string, role?: string, nama_toko?: string, nomor_wa?: string, sandi?: string, sandi2?: string }} input
+ * Validasi form daftar publik (fungsi murni; tidak menyentuh storage).
+ * Registrasi mandiri hanya untuk pembeli; akun penjual dibuat admin lewat
+ * `buatPenjual()`.
+ * @param {{ username?: string, role?: string, sandi?: string, sandi2?: string }} input
  */
 export function validateDaftar(input = {}) {
   const errors = {}
 
-  const role = String(input.role ?? 'penjual').trim().toLowerCase()
+  const role = String(input.role ?? 'pembeli').trim().toLowerCase()
   if (!PERAN_PUBLIK.includes(role)) {
-    errors.role = role === 'admin' ? PESAN_AUTH.roleAdmin : PESAN_AUTH.role
+    errors.role = role === 'admin' ? PESAN_AUTH.roleAdmin : PESAN_AUTH.roleDaftar
   }
 
   const username = normalisasiUsername(input.username)
   if (!POLA_USERNAME.test(username)) errors.username = PESAN_AUTH.username
-
-  const penjual = role === 'penjual'
-  const namaToko = penjual ? String(input.nama_toko ?? '').trim() : ''
-  if (penjual) {
-    if (namaToko.length < 2) errors.nama_toko = PESAN_AUTH.namaToko
-    else if (namaToko.length > 40) errors.nama_toko = PESAN_AUTH.namaTokoPanjang
-  }
-
-  const nomor = penjual ? normalisasiNomor(input.nomor_wa) : ''
-  if (penjual && nomor !== '' && !POLA_NOMOR_WA.test(nomor)) {
-    errors.nomor_wa = PESAN_AUTH.nomor
-  }
 
   const sandi = String(input.sandi ?? '')
   if (sandi.length < 6) errors.sandi = PESAN_AUTH.sandi
@@ -263,13 +251,37 @@ export function validateDaftar(input = {}) {
   return {
     valid: Object.keys(errors).length === 0,
     errors,
-    data: {
-      username,
-      role: PERAN_PUBLIK.includes(role) ? role : 'penjual',
-      nama_toko: namaToko,
-      nomor_wa: nomor,
-      sandi,
-    },
+    data: { username, role: 'pembeli', nama_toko: '', nomor_wa: '', sandi },
+  }
+}
+
+/**
+ * Validasi form admin untuk membuat akun penjual (fungsi murni).
+ * @param {{ username?: string, nama_toko?: string, nomor_wa?: string, sandi?: string, sandi2?: string }} input
+ */
+export function validateBuatPenjual(input = {}) {
+  const errors = {}
+
+  const username = normalisasiUsername(input.username)
+  if (!POLA_USERNAME.test(username)) errors.username = PESAN_AUTH.username
+
+  const namaToko = String(input.nama_toko ?? '').trim()
+  if (namaToko.length < 2) errors.nama_toko = PESAN_AUTH.namaToko
+  else if (namaToko.length > 40) errors.nama_toko = PESAN_AUTH.namaTokoPanjang
+
+  const nomor = normalisasiNomor(input.nomor_wa)
+  if (nomor !== '' && !POLA_NOMOR_WA.test(nomor)) errors.nomor_wa = PESAN_AUTH.nomor
+
+  const sandi = String(input.sandi ?? '')
+  if (sandi.length < 6) errors.sandi = PESAN_AUTH.sandi
+  else if (sandi.length > 72) errors.sandi = PESAN_AUTH.sandiPanjang
+
+  if (String(input.sandi2 ?? '') !== sandi) errors.sandi2 = PESAN_AUTH.sandiCocok
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+    data: { username, nama_toko: namaToko, nomor_wa: nomor, sandi },
   }
 }
 
@@ -316,13 +328,11 @@ async function hashSandi(sandi, salt) {
 }
 
 /**
- * Daftarkan akun baru lalu langsung membuat sesi.
- * @returns {Promise<{ ok: true, akun: object } | { ok: false, errors: Record<string,string> }>}
+ * Tambah satu akun ke localStorage (tanpa membuat sesi). Dipakai registrasi
+ * pembeli dan pembuatan akun penjual oleh admin.
+ * @param {{ username: string, role: string, nama_toko?: string, nomor_wa?: string, sandi: string }} data
  */
-export async function daftarAkun(input) {
-  const hasil = validateDaftar(input)
-  if (!hasil.valid) return { ok: false, errors: hasil.errors }
-
+async function tambahAkun(data) {
   const baca = muatAkun()
   if (baca.status === 'corrupt') {
     return { ok: false, errors: { umum: PESAN_AUTH.akunRusak } }
@@ -330,25 +340,25 @@ export async function daftarAkun(input) {
   if (baca.status === 'unavailable') {
     return { ok: false, errors: { umum: PESAN_AUTH.storage } }
   }
-  if (baca.akun.some((akun) => akun.username === hasil.data.username)) {
+  if (baca.akun.some((akun) => akun.username === data.username)) {
     return { ok: false, errors: { username: PESAN_AUTH.usernameDipakai } }
   }
 
   const salt = buatSalt()
   let hash
   try {
-    hash = await hashSandi(hasil.data.sandi, salt)
+    hash = await hashSandi(data.sandi, salt)
   } catch (error) {
     return { ok: false, errors: { umum: error.message } }
   }
 
   const akun = {
     id: buatId(),
-    username: hasil.data.username,
-    role: hasil.data.role,
+    username: data.username,
+    role: data.role,
     aktif: true,
-    nama_toko: hasil.data.nama_toko,
-    nomor_wa: hasil.data.nomor_wa,
+    nama_toko: data.nama_toko ?? '',
+    nomor_wa: data.nomor_wa ?? '',
     sandi_salt: salt,
     sandi_hash: hash,
     dibuat: new Date().toISOString(),
@@ -358,13 +368,42 @@ export async function daftarAkun(input) {
     return { ok: false, errors: { umum: PESAN_AUTH.storage } }
   }
 
+  return { ok: true, akun, sebelumnya: baca.akun }
+}
+
+/**
+ * Daftarkan akun pembeli lalu langsung membuat sesi.
+ * @returns {Promise<{ ok: true, akun: object } | { ok: false, errors: Record<string,string> }>}
+ */
+export async function daftarAkun(input) {
+  const hasil = validateDaftar(input)
+  if (!hasil.valid) return { ok: false, errors: hasil.errors }
+
+  const dibuat = await tambahAkun(hasil.data)
+  if (!dibuat.ok) return dibuat
+
   // Bila sesi gagal ditulis, kembalikan daftar akun agar pendaftaran bisa diulang.
-  if (!tulisItem(SESI_KEY, akun.id)) {
-    tulisAkun(baca.akun)
+  if (!tulisItem(SESI_KEY, dibuat.akun.id)) {
+    tulisAkun(dibuat.sebelumnya)
     return { ok: false, errors: { umum: PESAN_AUTH.sesi } }
   }
 
-  return { ok: true, akun: publik(akun) }
+  return { ok: true, akun: publik(dibuat.akun) }
+}
+
+/**
+ * Buat akun penjual dari panel admin. Tidak membuat sesi: admin tetap masuk
+ * sebagai admin dan menyerahkan username + password ke penjual.
+ * @returns {Promise<{ ok: true, akun: object } | { ok: false, errors: Record<string,string> }>}
+ */
+export async function buatPenjual(input) {
+  const hasil = validateBuatPenjual(input)
+  if (!hasil.valid) return { ok: false, errors: hasil.errors }
+
+  const dibuat = await tambahAkun({ ...hasil.data, role: 'penjual' })
+  if (!dibuat.ok) return dibuat
+
+  return { ok: true, akun: publik(dibuat.akun) }
 }
 
 /**
