@@ -1,14 +1,11 @@
 /**
  * ui.js — semua fungsi render (string HTML) dan helper presentasi.
- * Tidak menyentuh state; menerima data dari store/main.
+ * Tidak membaca state dan tidak memfilter data; daftar produk yang sudah
+ * difilter diterima dari main.js (hasil store.filterProducts).
  */
 
-import {
-  LABEL_STOK,
-  filterProduk,
-  sortProduk,
-  stokStatus,
-} from './products.js'
+import { LABEL_STOK, WHATSAPP_NUMBER, stokStatus } from './products.js'
+import { buildWhatsAppUrl } from './store.js'
 
 const KATEGORI_CLASS = {
   'Jajanan Pasar': 'jajanan',
@@ -26,6 +23,18 @@ const KATEGORI_EMOJI = {
   'Makanan Berat': '🍜',
 }
 
+/** Urutan pill kategori sesuai UI-SPEC §3.2. */
+const PILL_ORDER = [
+  'Makanan Berat',
+  'Minuman',
+  'Sambal & Bumbu',
+  'Oleh-oleh Kering',
+  'Jajanan Pasar',
+]
+
+/** Emoji lokal untuk mozaik hero — pengganti aset gambar berhak cipta (NF-08). */
+const HERO_EMOJI = ['🍜', '☕', '🌶️', '🍘', '🧆', '🍵', '🥟', '🍢']
+
 const STATUS_STOK = {
   tersedia: { class: 'stok-ok', label: LABEL_STOK.tersedia },
   menipis: { class: 'stok-low', label: LABEL_STOK.menipis },
@@ -40,11 +49,6 @@ export function escapeHtml(value) {
 
 export function formatRupiah(angka) {
   return `Rp ${Number(angka).toLocaleString('id-ID')}`
-}
-
-/** Produk yang lolos filter + urutan aktif. */
-export function produkTampil(state) {
-  return sortProduk(filterProduk(state.products, state.filters), state.filters.sort)
 }
 
 export function renderNavbar() {
@@ -74,6 +78,9 @@ export function renderHero(products, status) {
         Katalog produk makanan dan minuman khas Banyuwangi. Pilih produk,
         lalu hubungi penjual langsung lewat WhatsApp.
       </p>
+      <p class="hero-actions">
+        <a class="btn-cta" href="#katalog">Lihat katalog →</a>
+      </p>
       <dl class="hero-stats">
         <div class="hero-stat">
           <dt>Produk</dt>
@@ -90,9 +97,52 @@ export function renderHero(products, status) {
       </dl>
     </div>
     <div class="hero-mosaic" aria-hidden="true">
-      ${Object.values(KATEGORI_EMOJI)
-        .map((emoji) => `<span class="hero-sel">${emoji}</span>`)
-        .join('')}
+      ${HERO_EMOJI.map((emoji) => `<span class="hero-sel">${emoji}</span>`).join('')}
+    </div>
+  `
+}
+
+/**
+ * Filter bar statis (UI-SPEC §3.2). id="katalog" menjadi target CTA hero.
+ * State aktif pill diatur main.js lewat class + aria-pressed.
+ */
+export function renderFilterBar() {
+  const pills = PILL_ORDER.map((kategori) => {
+    const emoji = KATEGORI_EMOJI[kategori]
+    return `
+      <button type="button" class="pill" data-kategori="${escapeHtml(kategori)}"
+        aria-pressed="false">${emoji} ${escapeHtml(kategori)}</button>
+    `
+  }).join('')
+
+  return `
+    <div class="filter-bar" id="katalog" role="search" aria-label="Pencarian dan filter katalog">
+      <div class="filter-search">
+        <label class="sr-only" for="search-produk">Cari produk</label>
+        <span class="filter-icon" aria-hidden="true">🔍</span>
+        <input
+          id="search-produk"
+          type="search"
+          placeholder="Cari produk…"
+          autocomplete="off"
+        />
+      </div>
+      <div class="filter-pills" role="group" aria-label="Filter kategori">
+        <button type="button" class="pill active" data-kategori="Semua"
+          aria-pressed="true">Semua</button>
+        ${pills}
+        <button type="button" class="pill" data-kategori="Unggulan"
+          aria-pressed="false">⭐ Unggulan</button>
+      </div>
+      <div class="filter-sort">
+        <label class="sr-only" for="sort-produk">Urutkan produk</label>
+        <select id="sort-produk">
+          <option value="default">Urutan default</option>
+          <option value="nama">Nama A–Z</option>
+          <option value="harga-termurah">Harga termurah</option>
+          <option value="harga-termahal">Harga termahal</option>
+        </select>
+      </div>
     </div>
   `
 }
@@ -110,14 +160,14 @@ function renderCard(produk) {
   let aksi
   if (stok === 'habis') {
     aksi = '<button class="btn-wa" type="button" disabled>Habis</button>'
-  } else if (!produk.toko_nomor_wa) {
-    aksi = '<button class="btn-wa" type="button" disabled>WA belum diatur</button>'
   } else {
-    const teks = encodeURIComponent(
-      `Halo, saya ingin memesan ${produk.nama} dari ${produk.toko_nama}`,
-    )
-    const href = `https://wa.me/${produk.toko_nomor_wa}?text=${teks}`
-    aksi = `<a class="btn-wa" href="${escapeHtml(href)}" target="_blank" rel="noopener">📱 Pesan via WA</a>`
+    // Nomor toko diutamakan; WHATSAPP_NUMBER hanya fallback bila kosong.
+    const nomor = produk.toko_nomor_wa || WHATSAPP_NUMBER
+    const href = buildWhatsAppUrl(nomor, produk)
+
+    aksi = href
+      ? `<a class="btn-wa" href="${escapeHtml(href)}" target="_blank" rel="noopener">📱 Pesan via WhatsApp</a>`
+      : '<button class="btn-wa" type="button" disabled>WA belum diatur</button>'
   }
 
   return `
@@ -140,22 +190,24 @@ function renderCard(produk) {
   `
 }
 
-export function renderCatalog(state) {
-  if (state.status === 'loading' || state.status === 'idle') {
+/**
+ * @param {{ status: string, error: string|null, daftar: Array<object> }} view
+ */
+export function renderCatalog({ status, error, daftar }) {
+  if (status === 'loading' || status === 'idle') {
     return '<p class="state state-loading">Memuat produk…</p>'
   }
 
-  if (state.status === 'error') {
-    return `<p class="state state-empty" role="alert">${escapeHtml(state.error)}</p>`
+  if (status === 'error') {
+    return `<p class="state state-empty" role="alert">${escapeHtml(error)}</p>`
   }
-
-  const daftar = produkTampil(state)
 
   if (daftar.length === 0) {
     return `
       <div class="state state-empty">
         <span aria-hidden="true">🔍</span>
         <p>Tidak ada produk yang sesuai</p>
+        <p class="state-hint">Coba kata kunci lain atau ubah filter kategori.</p>
       </div>
     `
   }

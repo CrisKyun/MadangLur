@@ -31,6 +31,23 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body {
   margin: 0;
   background: var(--santan);
@@ -46,6 +63,18 @@ h3 {
   font-family: var(--ff-head);
   line-height: 1.2;
   margin: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Navbar — UI-SPEC §2.1 */
@@ -133,6 +162,40 @@ h3 {
   color: var(--wajan-muda);
 }
 
+.hero-actions {
+  margin: 0 0 1.75rem;
+}
+
+.btn-cta {
+  display: inline-block;
+  padding: 0.7rem 1.4rem;
+  border-radius: var(--r-sm);
+  background: var(--kunyit);
+  color: var(--gula-jawa);
+  font-family: var(--ff-head);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.btn-cta:hover {
+  background: var(--pandan);
+  transform: translateY(-1px);
+}
+
+.btn-cta:focus-visible {
+  outline: 3px solid var(--santan);
+  outline-offset: 2px;
+}
+
+.nav-brand:focus-visible,
+.nav-btn:focus-visible,
+.btn-wa:focus-visible {
+  outline: 3px solid var(--kunyit);
+  outline-offset: 2px;
+}
+
 .hero-stats {
   display: flex;
   gap: 1.5rem;
@@ -174,6 +237,110 @@ h3 {
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* Filter bar — UI-SPEC §3.2 */
+.filter-bar {
+  position: sticky;
+  top: 58px;
+  z-index: 90;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  scroll-margin-top: 58px;
+  padding: 0.75rem clamp(1rem, 4vw, 2.5rem);
+  background: var(--santan);
+  border-bottom: 1px solid var(--wajan-muda);
+}
+
+.filter-search {
+  position: relative;
+  flex: 1 1 220px;
+  max-width: 320px;
+}
+
+.filter-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.7rem;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+.filter-search input {
+  width: 100%;
+  padding: 0.55rem 0.75rem 0.55rem 2.2rem;
+  border: 1.5px solid var(--wajan-muda);
+  border-radius: var(--r-sm);
+  background: #fff;
+  color: var(--gula-jawa);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.filter-search input::placeholder {
+  color: #b0a090;
+}
+
+.filter-search input:focus,
+.filter-sort select:focus {
+  outline: none;
+  border-color: var(--daun-salam);
+  box-shadow: 0 0 0 2px rgba(45, 80, 22, 0.12);
+}
+
+.filter-pills {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filter-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.pill {
+  flex: 0 0 auto;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--santan-2);
+  color: var(--wajan);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pill:hover {
+  border-color: var(--pandan);
+  color: var(--daun-salam);
+}
+
+.pill.active {
+  background: var(--pandan-muda);
+  border-color: var(--daun-salam);
+  color: var(--daun-salam);
+}
+
+.pill:focus-visible {
+  outline: 2px solid var(--daun-salam);
+  outline-offset: 2px;
+}
+
+.filter-sort select {
+  min-width: 150px;
+  padding: 0.5rem 0.6rem;
+  border: 1.5px solid var(--wajan-muda);
+  border-radius: var(--r-sm);
+  background: #fff;
+  color: var(--gula-jawa);
+  font: inherit;
+  font-size: 0.82rem;
+}
+
 /* Katalog — UI-SPEC §3.3 */
 .catalog {
   padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2.5rem) 3rem;
@@ -210,6 +377,7 @@ h3 {
 .card {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   overflow: hidden;
   background: #fff;
   border-radius: var(--r-md);
@@ -256,6 +424,7 @@ h3 {
 .card-name {
   font-size: 0.95rem;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .badge {
@@ -350,6 +519,11 @@ h3 {
   margin: 0.5rem 0 0;
 }
 
+.state-hint {
+  color: var(--wajan);
+  font-size: 0.82rem;
+}
+
 /* Kategori — UI-SPEC §1.5 & §12 */
 .kat-jajanan {
   background: #fef3c7;
@@ -418,6 +592,21 @@ h3 {
   .product-grid {
     grid-template-columns: 1fr;
   }
+
+  .filter-search {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .filter-pills {
+    flex: 1 1 0;
+    min-width: 0;
+    order: 2;
+  }
+
+  .filter-sort {
+    order: 3;
+  }
 }
 
 @media (max-width: 540px) {
@@ -429,5 +618,13 @@ h3 {
     width: 44px;
     height: 44px;
     font-size: 1.4rem;
+  }
+
+  .hero-stats {
+    gap: 1rem;
+  }
+
+  .card-img {
+    height: 120px;
   }
 }

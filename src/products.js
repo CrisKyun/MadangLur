@@ -2,8 +2,10 @@
  * products.js — data & aturan domain produk.
  *
  * KATEGORI mengikuti enum PostgreSQL di SPEC §5.2.
- * DEMO_PRODUCTS hanya placeholder sementara agar UI bisa dirender sebelum
- * API tersedia; dihapus saat GET /api/produk dipakai (M2).
+ * DEMO_PRODUCTS berisi 8 produk fiktif untuk landing page; diganti data API
+ * saat GET /api/produk tersedia (M2).
+ *
+ * Logika filter/sort berada di store.js (filterProducts) agar mudah diuji.
  */
 
 export const KATEGORI = [
@@ -23,87 +25,102 @@ export const LABEL_STOK = {
   habis: 'Habis',
 }
 
-/** 8 produk seed SPEC §5.3 (tanpa created_at; id sementara, bukan UUID). */
+/**
+ * Nomor WhatsApp pemilik landing page (fiktif).
+ * Dipakai sebagai nomor tujuan default bila produk tidak punya nomor toko.
+ * Format internasional: 62 + digit, tanpa "+" dan tanpa spasi.
+ */
+export const WHATSAPP_NUMBER = '6281234500001'
+
+/** 8 produk contoh (fiktif) — nama, toko, dan nomor WA tidak merujuk entitas nyata. */
 export const DEMO_PRODUCTS = [
   {
-    id: 'rujak-soto-banyuwangi',
-    nama: 'Rujak Soto Banyuwangi',
+    id: 'nasi-tempong-mbak-nia',
+    nama: 'Nasi Tempong Mbak Nia',
     kategori: 'Makanan Berat',
-    harga: 18000,
-    stok: 20,
-    unggulan: true,
-    toko_nama: 'Toko Osing Jaya',
-    toko_nomor_wa: '6281200000001',
-  },
-  {
-    id: 'pecel-pitik',
-    nama: 'Pecel Pitik',
-    kategori: 'Makanan Berat',
-    harga: 25000,
-    stok: 8,
-    unggulan: true,
-    toko_nama: 'Toko Osing Jaya',
-    toko_nomor_wa: '6281200000001',
-  },
-  {
-    id: 'kopi-osing-robusta',
-    nama: 'Kopi Osing Robusta',
-    kategori: 'Minuman',
-    harga: 35000,
-    stok: 50,
-    unggulan: true,
-    toko_nama: 'Toko Osing Jaya',
-    toko_nomor_wa: '6281200000001',
-  },
-  {
-    id: 'wedang-uwuh-rempah',
-    nama: 'Wedang Uwuh Rempah',
-    kategori: 'Minuman',
-    harga: 15000,
-    stok: 30,
-    unggulan: false,
-    toko_nama: 'Toko Osing Jaya',
-    toko_nomor_wa: '6281200000001',
-  },
-  {
-    id: 'sambal-matah-kemasan',
-    nama: 'Sambal Matah Kemasan',
-    kategori: 'Sambal & Bumbu',
     harga: 22000,
-    stok: 5,
-    unggulan: false,
-    toko_nama: 'Warung Blambangan',
-    toko_nomor_wa: '6281200000002',
+    stok: 18,
+    unggulan: true,
+    deskripsi: 'Nasi hangat dengan sayur, ikan asin, dan sambal tempong pedas khas Banyuwangi.',
+    toko_nama: 'Dapur Mbak Nia',
+    toko_nomor_wa: '6281234500001',
   },
   {
-    id: 'kerupuk-ikan-blambangan',
-    nama: 'Kerupuk Ikan Blambangan',
-    kategori: 'Oleh-oleh Kering',
-    harga: 20000,
+    id: 'pecel-kembang-turi',
+    nama: 'Pecel Kembang Turi',
+    kategori: 'Makanan Berat',
+    harga: 15000,
+    stok: 4,
+    unggulan: false,
+    deskripsi: 'Sayur kembang turi rebus disiram bumbu kacang gurih, disajikan dengan peyek.',
+    toko_nama: 'Warung Bu Sri',
+    toko_nomor_wa: '6281234500002',
+  },
+  {
+    id: 'es-kopi-aren-gendis',
+    nama: 'Es Kopi Aren Gendis',
+    kategori: 'Minuman',
+    harga: 18000,
+    stok: 35,
+    unggulan: true,
+    deskripsi: 'Kopi robusta lokal dengan gula aren cair dan es batu, manisnya pas.',
+    toko_nama: 'Kedai Gendis',
+    toko_nomor_wa: '6281234500003',
+  },
+  {
+    id: 'wedang-jahe-serai',
+    nama: 'Wedang Jahe Serai',
+    kategori: 'Minuman',
+    harga: 12000,
     stok: 0,
     unggulan: false,
-    toko_nama: 'Warung Blambangan',
-    toko_nomor_wa: '6281200000002',
+    deskripsi: 'Jahe bakar dan serai segar diseduh gula batu, hangat dan tidak terlalu manis.',
+    toko_nama: 'Kedai Gendis',
+    toko_nomor_wa: '6281234500003',
   },
   {
-    id: 'getuk-lindri-banyuwangi',
-    nama: 'Getuk Lindri Banyuwangi',
+    id: 'tahu-walik-crispy',
+    nama: 'Tahu Walik Crispy',
     kategori: 'Jajanan Pasar',
-    harga: 12000,
-    stok: 15,
+    harga: 10000,
+    stok: 25,
     unggulan: false,
-    toko_nama: 'Warung Blambangan',
-    toko_nomor_wa: '6281200000002',
+    deskripsi: 'Tahu goreng renyah berisi adonan aci, cocok dicocol sambal kecap.',
+    toko_nama: 'Warung Bu Sri',
+    toko_nomor_wa: '6281234500002',
   },
   {
-    id: 'lapis-legit-osing',
-    nama: 'Lapis Legit Osing',
-    kategori: 'Jajanan Pasar',
-    harga: 45000,
-    stok: 3,
+    id: 'keripik-tempe-daun-jeruk',
+    nama: 'Keripik Tempe Daun Jeruk',
+    kategori: 'Oleh-oleh Kering',
+    harga: 16000,
+    stok: 12,
     unggulan: true,
-    toko_nama: 'Warung Blambangan',
-    toko_nomor_wa: '6281200000002',
+    deskripsi: 'Tempe iris tipis digoreng kering dengan aroma daun jeruk, camilan tahan lama.',
+    toko_nama: 'Toko Laras',
+    toko_nomor_wa: '6281234500004',
+  },
+  {
+    id: 'sambal-bawang-kemasan',
+    nama: 'Sambal Bawang Kemasan',
+    kategori: 'Sambal & Bumbu',
+    harga: 19000,
+    stok: 6,
+    unggulan: false,
+    deskripsi: 'Sambal bawang pedas dalam kemasan kaca, praktis untuk lauk harian.',
+    toko_nama: 'Dapur Mbak Nia',
+    toko_nomor_wa: '6281234500001',
+  },
+  {
+    id: 'klepon-pandan-gula-jawa',
+    nama: 'Klepon Pandan Gula Jawa',
+    kategori: 'Jajanan Pasar',
+    harga: 9000,
+    stok: 3,
+    unggulan: false,
+    deskripsi: 'Bola ketan pandan berisi gula jawa cair, taburan kelapa parut.',
+    toko_nama: 'Toko Laras',
+    toko_nomor_wa: '6281234500004',
   },
 ]
 
@@ -115,50 +132,4 @@ export const DEMO_PRODUCTS = [
 export function stokStatus(stok) {
   if (!Number.isFinite(stok) || stok <= 0) return 'habis'
   return stok <= STOK_MENIPIS ? 'menipis' : 'tersedia'
-}
-
-/**
- * Filter daftar produk berdasarkan kata kunci nama + pill kategori.
- * Teks kosong/spasi = semua produk; "Unggulan" memfilter flag unggulan.
- * @param {Array<object>} products
- * @param {{ query?: string, kategori?: string }} [filters]
- */
-export function filterProduk(products, { query = '', kategori = 'Semua' } = {}) {
-  const kataKunci = query.trim().toLowerCase()
-
-  return products.filter((produk) => {
-    const cocokKategori =
-      kategori === 'Semua'
-        ? true
-        : kategori === 'Unggulan'
-          ? produk.unggulan === true
-          : produk.kategori === kategori
-
-    const cocokKataKunci =
-      kataKunci === '' || produk.nama.toLowerCase().includes(kataKunci)
-
-    return cocokKategori && cocokKataKunci
-  })
-}
-
-/**
- * Urutkan salinan daftar produk (tidak mengubah array asli).
- * @param {Array<object>} products
- * @param {'default'|'nama'|'harga-termurah'|'harga-termahal'|'stok-terbanyak'} [sort]
- */
-export function sortProduk(products, sort = 'default') {
-  const hasil = [...products]
-
-  switch (sort) {
-    case 'nama':
-      return hasil.sort((a, b) => a.nama.localeCompare(b.nama, 'id'))
-    case 'harga-termurah':
-      return hasil.sort((a, b) => a.harga - b.harga)
-    case 'harga-termahal':
-      return hasil.sort((a, b) => b.harga - a.harga)
-    case 'stok-terbanyak':
-      return hasil.sort((a, b) => b.stok - a.stok)
-    default:
-      return hasil
-  }
 }
