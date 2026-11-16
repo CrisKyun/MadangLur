@@ -51,12 +51,81 @@ export function formatRupiah(angka) {
   return `Rp ${Number(angka).toLocaleString('id-ID')}`
 }
 
-export function renderNavbar() {
+/** Nama class warna kategori (dipakai kartu katalog & badge tabel dashboard). */
+export function kelasKategori(kategori) {
+  return KATEGORI_CLASS[kategori] ?? 'lainnya'
+}
+
+/**
+ * Tampilkan toast (UI-SPEC §8). Root disediakan main.js (#toast-root).
+ * @param {string} pesan
+ * @param {'success'|'error'|'info'} [tipe]
+ */
+export function showToast(pesan, tipe = 'success') {
+  const root = document.querySelector('#toast-root')
+  if (!root) return
+
+  const toast = document.createElement('div')
+  toast.className = `toast toast-${tipe}`
+  toast.setAttribute('role', tipe === 'error' ? 'alert' : 'status')
+  toast.textContent = pesan
+  root.appendChild(toast)
+
+  setTimeout(() => toast.remove(), 2500)
+}
+
+/**
+ * Banner pemberitahuan global (data tersimpan rusak / storage gagal).
+ * @param {{ tipe: 'error'|'info', pesan: string }} notice
+ */
+export function renderNotice(notice) {
+  return `
+    <div class="notice notice-${notice.tipe}" role="${notice.tipe === 'error' ? 'alert' : 'status'}">
+      <p>${escapeHtml(notice.pesan)}</p>
+      <button type="button" class="notice-close" data-action="dismiss-notice"
+        aria-label="Tutup pemberitahuan">✕</button>
+    </div>
+  `
+}
+
+const LABEL_PERAN = {
+  penjual: 'Penjual',
+  pembeli: 'Pembeli',
+  admin: 'Admin',
+}
+
+export function renderNavbar(session = null) {
+  let menu
+
+  if (!session) {
+    menu = `
+        <a class="nav-btn" href="#/" data-route="/">Katalog</a>
+        <a class="nav-btn" href="#/masuk" data-route="/masuk">Masuk</a>
+        <a class="nav-btn nav-cta" href="#/daftar" data-route="/daftar">Daftar</a>
+      `
+  } else {
+    const role = LABEL_PERAN[session.role] ? session.role : 'penjual'
+    const menuPeran =
+      role === 'admin'
+        ? '<a class="nav-btn" href="#/admin" data-route="/admin">Panel Admin</a>'
+        : role === 'penjual'
+          ? '<a class="nav-btn" href="#/dashboard" data-route="/dashboard">Dashboard</a>'
+          : ''
+
+    menu = `
+        <a class="nav-btn" href="#/" data-route="/">Katalog</a>
+        ${menuPeran}
+        <span class="nav-user" title="Masuk sebagai ${escapeHtml(session.username)}">${escapeHtml(session.username)}</span>
+        <span class="role-badge role-${role}">${LABEL_PERAN[role]}</span>
+        <button type="button" class="nav-btn nav-logout" data-action="logout">Keluar</button>
+      `
+  }
+
   return `
     <header class="nav">
       <a class="nav-brand" href="#/">🍛 MadangLur</a>
       <nav class="nav-menu" aria-label="Navigasi utama">
-        <a class="nav-btn active" href="#/">Katalog</a>
+        ${menu}
       </nav>
     </header>
   `
@@ -141,6 +210,7 @@ export function renderFilterBar() {
           <option value="nama">Nama A–Z</option>
           <option value="harga-termurah">Harga termurah</option>
           <option value="harga-termahal">Harga termahal</option>
+          <option value="stok-terbanyak">Stok terbanyak</option>
         </select>
       </div>
     </div>
@@ -148,7 +218,7 @@ export function renderFilterBar() {
 }
 
 function renderCard(produk) {
-  const kategoriClass = KATEGORI_CLASS[produk.kategori] ?? 'lainnya'
+  const kategoriClass = kelasKategori(produk.kategori)
   const emoji = KATEGORI_EMOJI[produk.kategori] ?? '🍽️'
   const stok = stokStatus(produk.stok)
   const statusStok = STATUS_STOK[stok]

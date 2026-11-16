@@ -102,21 +102,65 @@ h3 {
 
 .nav-menu {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
   gap: 0.5rem;
 }
 
 .nav-btn {
   padding: 0.4rem 0.9rem;
+  border: 0;
   border-radius: var(--r-sm);
+  background: transparent;
   color: var(--santan-2);
+  font: inherit;
   font-size: 0.85rem;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .nav-btn:hover,
 .nav-btn.active {
   background: rgba(255, 255, 255, 0.12);
   color: var(--santan);
+}
+
+.nav-user {
+  max-width: 12ch;
+  overflow: hidden;
+  color: var(--santan);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role-badge {
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: var(--daun-salam);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.nav-cta {
+  background: var(--kunyit);
+  color: var(--gula-jawa);
+  font-weight: 700;
+}
+
+.nav-cta:hover {
+  background: var(--pandan);
+  color: var(--gula-jawa);
+}
+
+.nav-logout {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--santan-2);
 }
 
 /* Hero — UI-SPEC §3.1 */
@@ -579,6 +623,183 @@ h3 {
   background: var(--santan-2);
 }
 
+/* Auth demo — #/masuk & #/daftar */
+.auth-wrap {
+  display: grid;
+  place-items: center;
+  min-height: calc(100vh - 58px);
+  padding: clamp(1.5rem, 5vw, 3.5rem) 1rem;
+  background: var(--santan);
+}
+
+.auth-card {
+  width: min(100%, 460px);
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  border-radius: var(--r-lg);
+  background: #fff;
+  box-shadow: var(--shadow-pop);
+}
+
+.auth-emoji {
+  margin: 0 0 0.4rem;
+  font-size: 2rem;
+  text-align: center;
+}
+
+.auth-title {
+  font-size: clamp(1.35rem, 3vw, 1.6rem);
+  text-align: center;
+}
+
+.auth-sub {
+  margin: 0.4rem 0 1.25rem;
+  color: var(--wajan);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.auth-field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.auth-field label {
+  color: var(--wajan);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.auth-optional {
+  color: var(--wajan);
+  font-weight: 400;
+}
+
+.auth-field input {
+  padding: 0.62rem 0.75rem;
+  border: 1.5px solid var(--wajan-muda);
+  border-radius: var(--r-sm);
+  background: var(--santan);
+  color: var(--gula-jawa);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.auth-field input:focus-visible {
+  border-color: var(--daun-salam);
+  outline: 2px solid var(--daun-salam);
+  outline-offset: 1px;
+}
+
+.auth-field input[aria-invalid='true'] {
+  border-color: var(--cabe);
+}
+
+.auth-field-error {
+  display: none;
+  margin: 0;
+  color: var(--cabe);
+  font-size: 0.76rem;
+}
+
+.auth-field-error.is-show {
+  display: block;
+}
+
+.auth-alert {
+  display: none;
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--r-sm);
+  background: var(--cabe-muda);
+  color: var(--cabe);
+  font-size: 0.8rem;
+}
+
+.auth-alert.is-show {
+  display: block;
+}
+
+.btn-auth {
+  padding: 0.72rem 1rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--daun-salam);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-auth:hover {
+  background: var(--pandan);
+}
+
+.btn-auth:disabled {
+  cursor: progress;
+  opacity: 0.65;
+}
+
+.btn-auth:focus-visible,
+.auth-switch a:focus-visible {
+  outline: 3px solid var(--kunyit);
+  outline-offset: 2px;
+}
+
+.auth-switch {
+  margin: 1.15rem 0 0;
+  color: var(--wajan);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: var(--daun-salam);
+  font-weight: 700;
+}
+
+.auth-note {
+  margin: 1rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--wajan-muda);
+  color: var(--wajan);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .nav {
+    height: auto;
+    min-height: 58px;
+    flex-wrap: wrap;
+    row-gap: 0.1rem;
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .nav-menu {
+    gap: 0.1rem 0.3rem;
+  }
+
+  .nav-btn {
+    padding: 0.32rem 0.55rem;
+    font-size: 0.8rem;
+  }
+
+  .nav-user {
+    max-width: 8ch;
+    font-size: 0.74rem;
+  }
+
+  .role-badge {
+    display: none;
+  }
+}
+
 /* Responsif — UI-SPEC §10 */
 @media (max-width: 760px) {
   .hero {
@@ -628,3 +849,770 @@ h3 {
     height: 120px;
   }
 }
+
+/* Dashboard — UI-SPEC §5.2 */
+.dash {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2.5rem) 3rem;
+}
+
+.dash-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dash-eyebrow {
+  display: inline-block;
+  margin: 0 0 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--kunyit-muda);
+  color: var(--kunyit);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.dash-title {
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: 700;
+}
+
+.dash-sub {
+  max-width: 62ch;
+  margin: 0.5rem 0 0;
+  color: var(--wajan);
+  font-size: 0.85rem;
+}
+
+.btn-add {
+  padding: 0.6rem 1.1rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--daun-salam);
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-add:hover {
+  background: var(--pandan);
+}
+
+.btn-add:focus-visible,
+.btn-edit:focus-visible,
+.btn-del:focus-visible,
+.btn-tool:focus-visible,
+.btn-cancel:focus-visible,
+.btn-save:focus-visible,
+.notice-close:focus-visible,
+.modal-close:focus-visible {
+  outline: 2px solid var(--daun-salam);
+  outline-offset: 2px;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.9rem 1rem;
+  background: #fff;
+  border-left: 4px solid var(--daun-salam);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-card);
+}
+
+.stat-label {
+  color: var(--wajan);
+  font-size: 0.78rem;
+}
+
+.stat-value {
+  font-family: var(--ff-head);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.table-card {
+  overflow: hidden;
+  background: #fff;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-card);
+}
+
+.table-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 1rem 1rem 0.5rem;
+}
+
+.table-head h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.table th {
+  padding: 0.6rem 0.75rem;
+  background: var(--santan-2);
+  color: var(--wajan);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.table td {
+  padding: 0.65rem 0.75rem;
+  border-top: 1px solid var(--wajan-muda);
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background: var(--santan-2);
+}
+
+.td-name {
+  font-weight: 600;
+}
+
+.td-price {
+  color: var(--daun-salam);
+  font-family: var(--ff-head);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.td-star {
+  color: var(--kunyit);
+}
+
+.text-habis {
+  color: var(--cabe);
+  font-weight: 600;
+}
+
+.td-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.btn-edit,
+.btn-del {
+  padding: 0.35rem 0.6rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-edit {
+  background: var(--kunyit-muda);
+  color: var(--kunyit);
+}
+
+.btn-edit:hover {
+  background: var(--kunyit);
+  color: #fff;
+}
+
+.btn-del {
+  background: var(--cabe-muda);
+  color: var(--cabe);
+}
+
+.btn-del:hover {
+  background: var(--cabe);
+  color: #fff;
+}
+
+.empty-row {
+  margin: 0;
+  padding: 2rem;
+  color: var(--wajan);
+  text-align: center;
+}
+
+/* Modal — UI-SPEC §7 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(44, 26, 14, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.25rem;
+  background: #fff;
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-pop);
+  animation: modal-in 0.2s ease;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.modal-head h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.modal-close {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--santan-2);
+  color: var(--wajan);
+  font: inherit;
+  cursor: pointer;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-field label,
+.form-check {
+  color: var(--gula-jawa);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  padding: 0.5rem 0.6rem;
+  border: 1.5px solid var(--wajan-muda);
+  border-radius: var(--r-sm);
+  background: #fff;
+  color: var(--gula-jawa);
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: var(--daun-salam);
+  box-shadow: 0 0 0 2px rgba(45, 80, 22, 0.12);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.btn-cancel,
+.btn-save {
+  padding: 0.65rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  flex: 1;
+  background: var(--santan-2);
+  color: var(--wajan);
+}
+
+.btn-save {
+  flex: 2;
+  background: var(--daun-salam);
+  color: #fff;
+}
+
+.btn-save:hover {
+  background: var(--pandan);
+}
+
+/* Toast — UI-SPEC §8 */
+.toast-root {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast {
+  max-width: min(320px, calc(100vw - 3rem));
+  padding: 0.7rem 1rem;
+  border-left: 4px solid var(--pandan);
+  border-radius: var(--r-md);
+  background: var(--gula-jawa);
+  color: var(--santan);
+  box-shadow: var(--shadow-pop);
+  font-size: 0.85rem;
+  animation: toast-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toast-error {
+  border-left-color: var(--cabe);
+}
+
+.toast-info {
+  border-left-color: var(--kunyit);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(80px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-head {
+    align-items: flex-start;
+  }
+
+  .btn-add {
+    width: 100%;
+  }
+}
+
+/* Pemberitahuan global — data tersimpan rusak / storage gagal */
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem clamp(1rem, 4vw, 2.5rem);
+  border-bottom: 1px solid var(--wajan-muda);
+  background: var(--kunyit-muda);
+  font-size: 0.85rem;
+}
+
+.notice p {
+  margin: 0;
+}
+
+.notice-error {
+  background: var(--cabe-muda);
+  color: var(--cabe);
+}
+
+.notice-info {
+  background: var(--pandan-muda);
+  color: var(--daun-salam);
+}
+
+.notice-close {
+  flex: 0 0 auto;
+  padding: 0.2rem 0.45rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.notice-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Toolbar demo dashboard (export/import/reset) */
+.dash-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.btn-tool {
+  padding: 0.45rem 0.8rem;
+  border: 1.5px solid var(--wajan-muda);
+  border-radius: var(--r-sm);
+  background: #fff;
+  color: var(--wajan);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-tool:hover {
+  border-color: var(--daun-salam);
+  color: var(--daun-salam);
+}
+
+.btn-tool-danger {
+  border-color: var(--cabe-muda);
+  color: var(--cabe);
+}
+
+.btn-tool-danger:hover {
+  border-color: var(--cabe);
+  background: var(--cabe-muda);
+  color: var(--cabe);
+}
+
+.dash-sub code {
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  background: var(--santan-2);
+  font-size: 0.8rem;
+}
+
+/* Peran akun — navbar & panel admin */
+.role-badge.role-admin {
+  background: var(--kunyit);
+  color: var(--gula-jawa);
+}
+
+.role-badge.role-pembeli {
+  background: var(--pandan);
+}
+
+/* Pemilih peran di form daftar */
+.auth-hint {
+  margin: 0.75rem 0 0;
+  color: var(--wajan);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.auth-hint code,
+.profile-hint code {
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+  background: var(--santan-2);
+  font-size: 0.95em;
+}
+
+.auth-hint-left {
+  margin: 0;
+  text-align: left;
+}
+
+.auth-role {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.auth-role legend {
+  margin-bottom: 0.35rem;
+  padding: 0;
+  color: var(--wajan);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.auth-role-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 0.7rem;
+  border: 1.5px solid var(--wajan-muda);
+  border-radius: var(--r-md);
+  background: var(--santan);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.auth-role-option:hover {
+  border-color: var(--pandan);
+}
+
+.auth-role-option:has(input:checked) {
+  border-color: var(--daun-salam);
+  background: var(--pandan-muda);
+  box-shadow: inset 0 0 0 1px var(--daun-salam);
+}
+
+.auth-role-option:has(input:focus-visible) {
+  outline: 2px solid var(--kunyit);
+  outline-offset: 2px;
+}
+
+.auth-role-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.auth-role-body {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.auth-role-body strong {
+  color: var(--gula-jawa);
+  font-size: 0.86rem;
+}
+
+.auth-role-body small {
+  color: var(--wajan);
+  font-size: 0.7rem;
+  line-height: 1.3;
+}
+
+.auth-store-fields {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.auth-store-fields[hidden] {
+  display: none;
+}
+
+/* Profil toko di dashboard penjual */
+.profile-card {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.1rem;
+  border-left: 4px solid var(--kunyit);
+  border-radius: var(--r-md);
+  background: #fff;
+  box-shadow: var(--shadow-card);
+}
+
+.profile-head h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.profile-sub {
+  max-width: 76ch;
+  margin: 0.25rem 0 0.9rem;
+  color: var(--wajan);
+  font-size: 0.82rem;
+}
+
+.profile-form {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.profile-hint {
+  margin: 0;
+  color: var(--wajan);
+  font-size: 0.75rem;
+}
+
+.profile-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.profile-actions .btn-save {
+  flex: 0 0 auto;
+  padding: 0.55rem 1.1rem;
+}
+
+.empty-row p {
+  margin: 0.2rem 0;
+}
+
+.empty-hint {
+  color: var(--wajan);
+  font-size: 0.8rem;
+}
+
+/* Panel admin — UI-SPEC §6 */
+.admin .table {
+  min-width: 820px;
+}
+
+.role-pill {
+  display: inline-block;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.role-pill.role-admin {
+  background: var(--kunyit-muda);
+  color: var(--kunyit);
+}
+
+.role-pill.role-penjual {
+  background: var(--pandan-muda);
+  color: var(--daun-salam);
+}
+
+.role-pill.role-pembeli {
+  background: var(--santan-2);
+  color: var(--wajan);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.status-aktif {
+  background: var(--pandan-muda);
+  color: var(--daun-salam);
+}
+
+.status-nonaktif {
+  background: var(--cabe-muda);
+  color: var(--cabe);
+}
+
+.btn-activate,
+.btn-deactivate {
+  padding: 0.35rem 0.6rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-activate {
+  background: var(--pandan-muda);
+  color: var(--daun-salam);
+}
+
+.btn-activate:hover {
+  background: var(--daun-salam);
+  color: #fff;
+}
+
+.btn-deactivate {
+  background: var(--kunyit-muda);
+  color: var(--kunyit);
+}
+
+.btn-deactivate:hover {
+  background: var(--kunyit);
+  color: #fff;
+}
+
+.btn-activate:focus-visible,
+.btn-deactivate:focus-visible {
+  outline: 2px solid var(--daun-salam);
+  outline-offset: 2px;
+}
+
+.text-muted {
+  color: var(--wajan);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 600px) {
+  .auth-role {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-actions .btn-save {
+    width: 100%;
+  }
+}
+

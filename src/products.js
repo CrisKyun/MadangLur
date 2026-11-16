@@ -2,8 +2,8 @@
  * products.js — data & aturan domain produk.
  *
  * KATEGORI mengikuti enum PostgreSQL di SPEC §5.2.
- * DEMO_PRODUCTS berisi 8 produk fiktif untuk landing page; diganti data API
- * saat GET /api/produk tersedia (M2).
+ * DEMO_PRODUCTS berisi 8 produk fiktif yang menjadi seed demo v0.4.0; nanti
+ * diganti data API saat GET /api/produk tersedia (M2).
  *
  * Logika filter/sort berada di store.js (filterProducts) agar mudah diuji.
  */
@@ -31,6 +31,12 @@ export const LABEL_STOK = {
  * Format internasional: 62 + digit, tanpa "+" dan tanpa spasi.
  */
 export const WHATSAPP_NUMBER = '6281234500001'
+
+/**
+ * Pola nomor WhatsApp internasional: 62 diikuti minimal 8 digit.
+ * Dipakai bersama oleh validasi form/import dan pembuatan tautan wa.me.
+ */
+export const POLA_NOMOR_WA = /^62[0-9]{8,}$/
 
 /** 8 produk contoh (fiktif) — nama, toko, dan nomor WA tidak merujuk entitas nyata. */
 export const DEMO_PRODUCTS = [
@@ -132,4 +138,19 @@ export const DEMO_PRODUCTS = [
 export function stokStatus(stok) {
   if (!Number.isFinite(stok) || stok <= 0) return 'habis'
   return stok <= STOK_MENIPIS ? 'menipis' : 'tersedia'
+}
+
+/** Slug + potongan UUID agar id produk unik tanpa backend. */
+export function buatIdProduk(nama) {
+  const slug = String(nama)
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+
+  const unik = globalThis.crypto?.randomUUID
+    ? globalThis.crypto.randomUUID().slice(0, 8)
+    : Math.random().toString(16).slice(2, 10)
+
+  return `${slug || 'produk'}-${unik}`
 }

@@ -10,7 +10,7 @@ Selain itu, latihan ini bertujuan membangun pemahaman bahwa AI merupakan alat ba
 
 ## 2. Target Aplikasi
 
-Aplikasi yang akan dikembangkan adalah **PawonBoga**, yaitu aplikasi katalog dan dashboard pengelolaan produk untuk UMKM yang bergerak di bidang makanan dan minuman.
+Aplikasi yang dikembangkan adalah **MadangLur**, yaitu aplikasi katalog dan dashboard pengelolaan produk untuk UMKM yang bergerak di bidang makanan dan minuman. (Draf awal workshop memakai nama kerja "PawonBoga"; nama final proyek adalah MadangLur.)
 
 Aplikasi ini ditargetkan memiliki fitur utama sebagai berikut:
 
@@ -19,17 +19,18 @@ Aplikasi ini ditargetkan memiliki fitur utama sebagai berikut:
 3. **Penyimpanan Data:** Menyimpan data produk menggunakan localStorage dengan validasi data.
 4. **Import dan Export:** Menyediakan fitur untuk mengimpor dan mengekspor data produk dalam format JSON.
 5. **Integrasi WhatsApp:** Memudahkan pelanggan menghubungi penjual melalui WhatsApp.
-6. **Pengujian:** Memastikan fitur aplikasi berjalan sesuai kebutuhan melalui pengujian manual dan Vitest.
+6. **Pengujian:** Memastikan fitur aplikasi berjalan sesuai kebutuhan melalui pengujian manual; Vitest direncanakan untuk fungsi murni.
+7. **Akun Demo:** Fitur daftar dan masuk penjual dengan akun serta sesi yang disimpan di localStorage. Ini adalah padanan sementara untuk target auth JWT, bukan keamanan produksi.
 
-Teknologi yang digunakan dalam pengembangan aplikasi ini adalah Vite, Vanilla JavaScript, localStorage, dan Vitest.
+Teknologi yang digunakan dalam demo ini adalah Vite dan Vanilla JavaScript, dengan penyimpanan data produk di localStorage. Vitest direncanakan untuk pengujian fungsi murni pada tahap berikutnya.
 
 ## 3. Batasan Workshop
 
 Agar pengembangan tetap terarah dan sesuai dengan tujuan pembelajaran, batasan workshop ini meliputi:
 
 1. Pengembangan aplikasi mengikuti instruksi dan tahapan yang telah ditentukan dalam workshop.
-2. Penyimpanan data menggunakan localStorage, bukan database server.
-3. Aplikasi ditujukan untuk pembelajaran dan demonstrasi, sehingga tidak boleh dianggap sebagai sistem produksi yang aman.
+2. Penyimpanan data (produk, akun, dan sesi) menggunakan localStorage, bukan database server.
+3. Aplikasi ditujukan untuk pembelajaran dan demonstrasi, sehingga tidak boleh dianggap sebagai sistem produksi yang aman. Password demo di-hash SHA-256 + salt di browser, tetapi hash dan sesi tetap dapat dibaca/dimodifikasi pengguna.
 4. Pengembangan dilakukan secara bertahap menggunakan prompt yang jelas dan memiliki tujuan spesifik.
 5. Setiap perubahan kode yang dihasilkan AI harus ditinjau dan diuji sebelum disetujui.
 

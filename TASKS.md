@@ -1,10 +1,37 @@
 # TASKS.md — MadangLur
 **Rencana Pengerjaan Iteratif**
-Versi: 0.3.0 | Referensi: SPEC.md v0.3.0, UI-SPEC.md v0.3.0
-Estimasi total: **±14–16 jam** (2 hari, 1 orang)
+Versi: 0.5.0 | Referensi: SPEC.md v0.5.0, UI-SPEC.md v0.5.0, STATUS.md
+Estimasi total target: **±14–16 jam** (2 hari, 1 orang)
 
 > Kerjakan berurutan. Setiap milestone adalah checkpoint yang dapat dijalankan dan diuji sendiri.
 > Jangan lanjut ke milestone berikutnya sebelum semua acceptance criteria milestone saat ini terpenuhi.
+>
+> **Penting:** M1–M9 adalah **rencana target** (Express + Supabase + JWT).
+> Demo v0.5.0 hanya mengerjakan sebagian frontend dengan data `localStorage`, ditambah
+> **auth lokal** (daftar/masuk/logout/sesi) yang bukan JWT.
+> Status nyata ada di `STATUS.md`; jangan menandai milestone selesai hanya karena padanan
+> demo-nya ada.
+>
+> Checkbox `[ ]` di M1–M9 tetap menunjukkan **checklist target**. Status demo yang sudah
+> selesai diringkas di tabel bawah dan blok “Status demo v0.5.0” pada tiap milestone.
+
+---
+
+## Status Implementasi Demo (v0.5.0)
+
+| Milestone | Status demo | Keterangan |
+|---|---|---|
+| M1 — Scaffold & DB | 🟡 sebagian | Vite + `.gitignore` ada; `server/`, `db/`, Supabase belum |
+| M2 — Seed & Katalog | 🟡 sebagian | Katalog, hero, card, WA, empty state selesai dengan `DEMO_PRODUCTS`; API/seed DB belum |
+| M3 — Search/Filter/Sort | ✅ selesai | Search nama+deskripsi, pill kategori/unggulan, 5 opsi sort, count, empty state |
+| M4 — Auth JWT & WA | 🟡 sebagian | Integrasi WA + auth lokal (daftar/masuk/logout/sesi/guard/navbar) selesai; JWT, bcrypt server, role, status aktif belum |
+| M5 — Dashboard CRUD | 🟡 sebagian | CRUD produk + stat card + modal + toast + header akun selesai; profil toko, kepemilikan server, filter `toko_id` belum |
+| M6 — Panel Admin | ⏳ belum | — |
+| M7 — Vitest | ⏳ belum | Verifikasi sementara via skrip Node + build; auth ikut diuji di skrip Node |
+| M8 — Security & Polish | 🟡 sebagian | Responsif/aksesibilitas dasar, toast, notice, error form auth; checklist keamanan server tidak berlaku |
+| M9 — README & Finalisasi | 🟡 sebagian | `README.md` + `STATUS.md` v0.5.0 dibuat; commit akhir belum |
+
+Detail per fitur dan deviasi: `STATUS.md`.
 
 ---
 
@@ -21,6 +48,9 @@ Estimasi total: **±14–16 jam** (2 hari, 1 orang)
 ## M1 — Scaffold Monorepo & Koneksi Database
 **Estimasi: ±45 menit**
 **Goal:** Struktur folder siap; Express bisa query ke Supabase; Vite bisa jalan.
+
+> **Status demo v0.5.0:** Vite sudah berjalan dari root repo (`index.html`, `src/`,
+> `vite.config.js`, `.gitignore`). `server/`, `db/`, `.env`, dan koneksi Supabase belum ada.
 
 ### Tugas
 
@@ -87,6 +117,10 @@ M1-AC4  Supabase Table Editor: tabel users, toko, produk terbuat dengan kolom se
 **Estimasi: ±2,5 jam**
 **Goal:** 8 produk dari DB tampil sebagai card grid di halaman katalog; Hero section lengkap.
 
+> **Status demo v0.5.0:** katalog, hero, card, indikator stok, tombol WA, loading/empty
+> state sudah ada. Sumber data adalah `DEMO_PRODUCTS` + `localStorage`, bukan seed database
+> atau `GET /api/produk`. Task backend di milestone ini belum dikerjakan.
+
 ### Tugas
 
 **Backend:**
@@ -111,7 +145,7 @@ M1-AC4  Supabase Table Editor: tabel users, toko, produk terbuat dengan kolom se
 - [ ] Implementasi indikator stok 3 level (ok / low / habis) sesuai UI-SPEC §3.3
 - [ ] Implementasi tombol WA: disabled jika stok=0 atau nomor_wa kosong; link `wa.me/...` jika aktif
 - [ ] Buat `client/index.html` — struktur dasar + mount catalog
-- [ ] Import CSS dari prototype ke `client/src/style.css` (design token + komponen katalog)
+- [ ] Implementasikan design token + komponen katalog di `client/src/style.css` (prototype tidak disertakan)
 - [ ] Buat Navbar — state guest (hanya tombol Masuk) sesuai UI-SPEC §2.1
 - [ ] Loading state: tampilkan "Memuat produk…" di grid + placeholder `—` di Hero stats selama fetch berlangsung
 - [ ] Error state: jika fetch gagal → toast error "Gagal memuat data. Coba lagi." (sesuai AC-UI12 SPEC)
@@ -165,10 +199,15 @@ M2-AC9  Matikan server lalu buka katalog → toast "Gagal memuat data. Coba lagi
 **Estimasi: ±1 jam**
 **Goal:** Filter bar fungsional; semua filter bekerja di sisi klien dari data yang sudah di-fetch.
 
+> **Status demo v0.5.0:** selesai. Pencarian mencocokkan nama + deskripsi; pill kategori
+> dan ⭐ Unggulan; sort default, Nama A–Z, Harga termurah/termahal, **Stok terbanyak**;
+> `catalog-count` dan empty state berfungsi. Logika murni ada di `src/store.js`
+> (`filterProducts`).
+
 ### Tugas
 
 - [ ] Tambah filter bar ke `catalog.js`:
-  - Search input (real-time `oninput`) — filter nama produk case-insensitive
+  - Search input (real-time `oninput`) — filter nama **dan deskripsi** produk, case-insensitive
   - Pill kategori: Semua / 5 kategori / ⭐ Unggulan — sesuai UI-SPEC §3.2
   - Sort select: default / Nama A–Z / Harga termurah / Harga termahal / Stok terbanyak
 - [ ] State filter (`currentKat`, query search, sort) disimpan dalam variabel modul — tidak re-fetch ke API saat filter berubah
@@ -197,7 +236,8 @@ M3-AC4  Sort "Harga termurah" → card urut dari Rp 12.000 ke Rp 45.000.
 
 M3-AC5  Sort "Nama A–Z" → card urut alfabetis.
 
-M3-AC6  Kombinasi: search "a" + filter "Minuman" → hanya produk minuman yang namanya mengandung "a".
+M3-AC6  Kombinasi: search "a" + filter "Minuman" → hanya produk minuman yang nama
+        atau deskripsinya mengandung "a".
 
 M3-AC7  Tidak ada produk sesuai filter → empty state tampil (emoji + teks "Tidak ada produk...").
 
@@ -209,6 +249,13 @@ M3-AC8  catalog-count menunjukkan jumlah card yang sedang tampil, bukan total se
 ## M4 — Autentikasi JWT & Integrasi WhatsApp
 **Estimasi: ±1,5 jam**
 **Goal:** Login/logout berfungsi; JWT disimpan di localStorage; redirect sesuai role; tombol WA terverifikasi.
+
+> **Status demo v0.5.0:** integrasi WhatsApp (`buildWhatsAppUrl`, `isNomorWAValid`,
+> fallback `WHATSAPP_NUMBER`) selesai. Demo juga sudah punya auth lokal: `src/auth.js`
+> (akun + hash SHA-256/salt + sesi), `src/auth-page.js` (`#/masuk`, `#/daftar`), guard di
+> `src/main.js`, dan navbar auth-aware. **Yang belum:** endpoint login, JWT,
+> `madanglur_token`, bcrypt, role/status aktif, dan redirect per role. Auth lokal adalah
+> padanan sementara M4, bukan penyelesaian target.
 
 ### Tugas
 
@@ -291,6 +338,12 @@ M4-AC10 Tombol WA di katalog: produk stok>0 dan nomor_wa terisi → klik → wa.
 ## M5 — Dashboard Penjual (CRUD Produk & Profil Toko)
 **Estimasi: ±2,5 jam**
 **Goal:** Penjual bisa tambah, edit, hapus produk miliknya; bisa edit profil toko; semua tervalidasi di server.
+
+> **Status demo v0.5.0:** CRUD produk, 4 stat card, modal tambah/edit, validasi client
+> (UI-SPEC §9), konfirmasi hapus, toast, persistensi `localStorage`, serta header akun
+> (nama toko + @username) sudah ada. Guard sesi ada di `main.js`. Belum ada: role nyata,
+> fetch toko, filter `toko_id`, kepemilikan di server, dan tab Profil Toko. Dashboard demo
+> menampilkan katalog bersama; produk baru/import memakai identitas toko akun.
 
 ### Tugas
 
@@ -376,6 +429,9 @@ M5-AC13 GET /api/produk/:id dengan UUID tidak ada → 404 { error: "Tidak ditemu
 **Estimasi: ±1,5 jam**
 **Goal:** Admin bisa lihat, tambah, nonaktifkan, dan hapus akun penjual beserta tokonya.
 
+> **Status demo v0.5.0:** belum dikerjakan. Tidak ada route `#/admin`, panel admin,
+> model user, atau endpoint `/api/users`.
+
 ### Tugas
 
 **Backend:**
@@ -438,6 +494,11 @@ M6-AC7  Global stat cards menampilkan angka yang sesuai dengan data nyata.
 ## M7 — Vitest: Unit Test Utils & Validasi
 **Estimasi: ±1 jam**
 **Goal:** Fungsi-fungsi kritis yang murni (tanpa I/O) tercakup oleh unit test.
+
+> **Status demo v0.5.0:** belum ada Vitest/file test. Fungsi murni (`filterProducts`,
+> `validateProduk`, `buildWhatsAppUrl`, `validasiDaftarProduk`, `validateDaftar`,
+> `validateMasuk`) sudah dipisah agar mudah diuji, dan sudah diverifikasi manual lewat skrip
+> Node sementara (termasuk 35 pemeriksaan auth).
 
 > Scope: **unit test saja** — utils client-side dan validator server-side.
 > Tidak mencakup integration test endpoint Express (itu cukup diuji manual via acceptance criteria).
@@ -525,6 +586,13 @@ cd client && npm run test:watch
 **Estimasi: ±1 jam**
 **Goal:** Semua acceptance criteria SPEC §11 terpenuhi; tidak ada celah keamanan obvious; UI responsif dan aksesibel.
 
+> **Status demo v0.5.0:** polish UI dasar sudah ada (responsif, fokus terlihat, label
+> form, `disabled` native, toast, notice, error form auth dengan `aria-invalid`). Checklist
+> keamanan server (JWT, bcrypt, kepemilikan data, `.env`) belum berlaku karena backend belum
+> ada. Penting: auth demo **bukan** keamanan produksi — hash SHA-256 + salt di browser tidak
+> menggantikan bcrypt + verifikasi server. Lighthouse dan audit keyboard menyeluruh belum
+> dijalankan.
+
 ### Tugas
 
 **Security checklist:**
@@ -572,7 +640,7 @@ M8-AC1  git log --all -- .env → tidak ada commit yang menyertakan file .env.
 M8-AC2  PUT /api/produk/:id dengan token penjual lain → 403 (bukan 200).
         Verifikasi ini terjadi di server, bukan hanya diblok di UI.
 
-M8-AC3  Semua 26 acceptance criteria SPEC §11 (AC-A01–AC-UI11) lulus secara manual.
+M8-AC3  Semua acceptance criteria target SPEC §11 (AC-A01–AC-UI12) lulus secara manual.
 
 M8-AC4  DevTools Lighthouse Accessibility score ≥ 80 di halaman katalog.
 
@@ -604,11 +672,15 @@ cd client && npm test && cd ../server && npm test
 
 > Sesuai SPEC §10 Out-of-Scope: **tidak ada deployment ke cloud**. Aplikasi berjalan lokal + Supabase.
 
+> **Status demo v0.5.0:** `README.md` dan `STATUS.md` sudah dibuat untuk demo frontend +
+> auth lokal. Langkah Supabase/akun seed/dua terminal di bawah baru berlaku setelah backend
+> ada. Build `npm run build` sudah sukses; commit akhir belum dilakukan.
+
 ### Tugas
 
 - [ ] Tulis `README.md`:
   - Deskripsi singkat MadangLur
-  - Prasyarat: Node.js ≥ 18, akun Supabase
+  - Prasyarat: Node.js ≥ 20.19 atau ≥ 22.12 (Vite 8), akun Supabase
   - Setup: clone → `.env` → migrasi → seed → jalankan
   - Cara menjalankan:
     ```bash
@@ -660,15 +732,31 @@ M9-AC5  cd client && npm run build → build sukses tanpa error (opsional, nice-
 | M7 | Vitest — Unit Test Utils & Validasi | ±1 jam | M3, M5 |
 | M8 | Security Review & Polish | ±1 jam | M6, M7 |
 | M9 | README & Finalisasi | ±30 mnt | M8 |
-| | **Total** | **±12–14 jam** | |
+| | **Total** | **±14–16 jam** (termasuk buffer) | |
 
 ---
 
 ## Catatan Penting
 
-- **localStorage** di proyek ini **hanya** untuk menyimpan JWT token (`madanglur_token`). Bukan sebagai data store. Semua data produk/toko/user ada di Supabase PostgreSQL. Ini sesuai SPEC.md v0.3.0 — migrasi dari localStorage sebagai primary store sudah dilakukan sejak v0.2.0→v0.3.0.
-- **Deployment:** sesuai SPEC §10 Out-of-Scope — tidak ada deployment ke cloud dalam scope ini. Aplikasi berjalan lokal; hanya Supabase (database) yang cloud.
-- **Vitest:** scope dibatasi unit test fungsi murni (utils + validator). Integration test endpoint Express cukup via acceptance criteria manual dengan Postman/Thunder Client — sesuai SPEC §11.
+- **localStorage — target:** di arsitektur target, localStorage **hanya** untuk JWT token
+  (`madanglur_token`). Data produk/toko/user ada di Supabase PostgreSQL. Ini sesuai
+  SPEC.md v0.3.0.
+- **localStorage — demo v0.5.0:** karena backend belum ada, demo menyimpan tiga hal:
+  produk di `madanglur:products:v1`, akun di `madanglur:users:v1`, dan sesi di
+  `madanglur:session:v1` (lihat `src/storage.js`, `src/auth.js`). Ini **deviasi
+  terdokumentasi** (`STATUS.md` §4), bukan arsitektur final. Saat M2/M4 dikerjakan, ganti
+  `loadProducts()` dengan `apiFetch('/produk')` dan `auth.js` dengan `POST /api/auth/login`
+  + JWT; `storage.js` boleh dihapus.
+- **Auth demo bukan keamanan produksi:** password di-hash SHA-256 + salt via Web Crypto,
+  tetapi hash, akun, dan sesi berada di browser dan dapat dibaca/dimodifikasi. Jangan pakai
+  pola ini untuk data nyata; target tetap bcrypt + JWT + verifikasi server.
+- **Deployment:** sesuai SPEC §10 Out-of-Scope — tidak ada deployment ke cloud dalam scope
+  ini. Aplikasi berjalan lokal; hanya Supabase (database) yang cloud.
+- **Vitest:** scope dibatasi unit test fungsi murni (utils + validator). Integration test
+  endpoint Express cukup via acceptance criteria manual dengan Postman/Thunder Client —
+  sesuai SPEC §11. Pada demo v0.5.0, Vitest belum dipasang.
+- **Dokumen status:** `STATUS.md` mencatat fitur yang benar-benar berjalan. Jika ada
+  perbedaan antara checklist di sini dan kode, `STATUS.md` yang berlaku untuk demo.
 
 ---
 

@@ -1,7 +1,8 @@
 {
   "name": "madanglur",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.6.0",
+  "description": "MadangLur â€” katalog & dashboard produk UMKM Banyuwangi (demo frontend, Vite + localStorage)",
   "type": "module",
   "scripts": {
     "dev": "vite",

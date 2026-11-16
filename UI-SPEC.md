@@ -1,7 +1,37 @@
 # UI-SPEC.md — MadangLur
 **Spesifikasi Antarmuka Pengguna (UI/UX)**
-Versi: 0.3.0 | Status: Draft | Tanggal: 2026-11-16
-Referensi: SPEC.md v0.3.0 | Prototype: MadangLur___Prototype_Interaktif.html
+Versi: 0.6.0 | Status: Draft — target + demo | Tanggal: 2026-11-16
+Referensi: SPEC.md v0.6.0 | Prototype: tidak disertakan di repo demo
+
+```
+Changelog:
+  v0.3.0  Spesifikasi UI target untuk katalog, login, dashboard, admin
+  v0.4.0  Selaraskan dengan demo: navbar tanpa login, dashboard tanpa sidebar/profil,
+          toolbar import/export/reset, notice banner, label "Pesan via WhatsApp"
+  v0.5.0  Demo auth lokal: halaman Masuk/Daftar, navbar auth-aware, guard dashboard,
+          dashboard berheader akun. Sidebar, profil toko, dan admin tetap target.
+  v0.6.0  Demo 3 role: pemilih peran di Daftar, navbar role-aware, dashboard penjual
+          scoped + kartu Profil Toko, panel admin, guard role. Sidebar + form admin
+          tambah penjual tetap target.
+```
+
+## 0. Status Implementasi UI (v0.6.0)
+
+> Dokumen ini adalah **target** UI. Demo v0.6.0 mengimplementasikan halaman katalog,
+> **masuk/daftar (auth lokal 3 role)**, dashboard penjual dengan profil toko, dan panel admin.
+> Sidebar, deskripsi toko, **form admin tambah penjual**, dan guard JWT server **belum ada**.
+
+| Area | Demo v0.6.0 | Target (belum) |
+|---|---|---|
+| Navbar | Brand + Katalog + Masuk/Daftar (tamu) atau username + badge peran + menu role + Keluar | Dropdown akun, sidebar |
+| Routing | `#/`, `#/masuk`, `#/daftar`, `#/dashboard`, `#/admin` + guard role client-side | `#/login`, guard role JWT server |
+| Katalog | Hero, filter, grid, card, WA, empty state | Featured card span 2 kolom |
+| Auth | Form Masuk/Daftar, pemilih Penjual/Pembeli, error per field, sesi `localStorage`, admin seed | Login JWT server, widget akun seed |
+| Dashboard | Header akun, kartu Profil Toko, 4 stat card, tabel produk sendiri, modal CRUD, export/import scoped | Sidebar, tab Profil Toko, kelola via API |
+| Admin | Stat global, tabel akun, toggle status, hapus, reset produk | Form tambah penjual, aksi via API |
+| Notifikasi | Toast + banner notice | — |
+
+Status per fitur: `STATUS.md`. Struktur file aktual: `SPEC.md` §7.1.
 
 ---
 
@@ -98,23 +128,40 @@ Semua nilai warna, tipografi, dan spasi menggunakan token CSS di `:root`. Implem
 |---|---|---|
 | `.nav-brand` (🍛 MadangLur) | Selalu | font-weight 800, warna `var(--santan)`, klik → katalog |
 | Tombol "Katalog" | Selalu | `.nav-btn`; class `.active` saat di halaman katalog |
-| Tombol "Masuk" | Belum login | `.nav-btn.login-btn`; bg `var(--kunyit)` |
-| Username | Sudah login | Teks `var(--santan-2)`, font-size `.85rem` |
-| `.role-badge` | Sudah login | Pill kecil, bg `var(--daun-salam)`, teks putih, kapitalisasi |
-| Tombol "Keluar" | Sudah login | Border `1px solid rgba(255,255,255,.2)`, warna `var(--santan-2)` |
+| Tombol "Masuk" | Belum login | `.nav-btn`; class `.active` saat di `#/masuk` |
+| Tombol "Daftar" | Belum login | `.nav-btn.nav-cta`; bg `var(--kunyit)` |
+| Tombol "Dashboard" | Sudah login sebagai penjual | `.nav-btn`; class `.active` saat di `#/dashboard` |
+| Tombol "Panel Admin" | Sudah login sebagai admin | `.nav-btn`; class `.active` saat di `#/admin` |
+| Username | Sudah login | `.nav-user`; teks `var(--santan-2)`, font-size `.8rem`, ellipsis 12ch |
+| `.role-badge` | Sudah login | Pill kecil; hijau untuk penjual, pandan untuk pembeli, kunyit untuk admin |
+| Tombol "Keluar" | Sudah login | `.nav-btn.nav-logout`; border `1px solid rgba(255,255,255,.2)` |
+
+> **Demo v0.6.0:** navbar dirender ulang setiap route berdasarkan `getSession()`. Tamu melihat
+> **Katalog · Masuk · Daftar**; penjual melihat **Katalog · Dashboard · username · badge
+> Penjual · Keluar**; pembeli melihat **Katalog · username · badge Pembeli · Keluar**; admin
+> melihat **Katalog · Panel Admin · username · badge Admin · Keluar**. Badge mengikuti
+> `role` akun; menu Dashboard/Panel Admin hanya tampil untuk peran yang berhak. Link aktif
+> memakai `.active` + `aria-current="page"`.
 
 ### 2.2 Routing (Hash-based)
 
 | Hash | Halaman | Guard |
 |---|---|---|
 | `#/` atau kosong | Katalog Publik | Tidak ada |
-| `#/login` | Halaman Login | Redirect ke `#/` jika sudah login |
-| `#/dashboard` | Dashboard Penjual | Redirect ke `#/login` jika tidak ada token; 403 jika bukan penjual |
-| `#/admin` | Panel Admin | Redirect ke `#/login` jika tidak ada token; 403 jika bukan admin |
+| `#/login` (target) / `#/masuk` (demo) | Halaman Masuk | Redirect sesuai peran jika sudah masuk |
+| `#/daftar` (demo) | Halaman Daftar | Redirect sesuai peran jika sudah masuk |
+| `#/dashboard` | Dashboard Penjual | Tanpa sesi → `#/masuk`; bukan penjual → halaman sesuai peran + toast |
+| `#/admin` | Panel Admin | Tanpa sesi → `#/masuk`; bukan admin → halaman sesuai peran + toast |
 
 **Redirect setelah login:**
 - Role `admin` → `#/admin`
 - Role `penjual` → `#/dashboard`
+- Role `pembeli` → `#/`
+
+> **Demo v0.6.0:** `#/masuk` dan `#/daftar` menggantikan `#/login`; `#/admin` sudah ada dengan
+> guard role client-side. Guard memakai sesi `localStorage` (`madanglur:session:v1`), bukan JWT.
+> Pengguna yang sudah masuk dan membuka `#/masuk`/`#/daftar` dialihkan ke halaman sesuai
+> perannya. Hash tidak dikenal diarahkan ke `#/`; trailing slash (`#/dashboard/`) dinormalkan.
 
 ---
 
@@ -214,7 +261,7 @@ Daftar pill: **Semua** · 🍽 Makanan Berat · ☕ Minuman · 🌶 Sambal & Bum
 │ Rp 18.000               │  ← .card-price, ff-head 1.1rem 800 daun-salam
 │ ● Tersedia / Menipis /  │  ← .stok-wrap (dot + label)
 │   Habis                 │
-│ [📱 Pesan via WA]       │  ← .btn-wa
+│ [📱 Pesan via WhatsApp] │  ← .btn-wa
 └─────────────────────────┘
 ```
 
@@ -226,7 +273,7 @@ Daftar pill: **Semua** · 🍽 Makanan Berat · ☕ Minuman · 🌶 Sambal & Bum
 | 1 ≤ stok ≤ 5 | `.stok-low` | `var(--kunyit)` | `var(--kunyit)` | "Stok Menipis" |
 | stok = 0 | `.stok-habis` | `var(--cabe)` | `var(--cabe)` | "Habis" |
 
-**Tombol "Pesan via WA" (`.btn-wa`):**
+**Tombol "Pesan via WhatsApp" (`.btn-wa`):**
 
 | Kondisi | State | Perilaku |
 |---|---|---|
@@ -260,47 +307,67 @@ Implementasi: `const text = encodeURIComponent(\`Halo, saya ingin memesan ${prod
 
 ---
 
-## 4. Halaman: Login (`#/login`)
+## 4. Halaman: Masuk (`#/masuk`) & Daftar (`#/daftar`)
+
+> **Demo v0.6.0:** dua halaman auth sudah ada dengan gaya kartu di tengah. Daftar memiliki
+> pemilih peran **Penjual/Pembeli** (tanpa opsi admin); field toko hanya tampil untuk penjual.
+> Halaman masuk menampilkan hint akun admin demo (`admin` / `Admin123!`). Target final tetap
+> login JWT di `#/login` dengan widget akun seed; spesifikasi kartu di bawah berlaku untuk demo.
 
 ```
 ┌──────────────────────────────────────┐
-│           🍛                          │
-│      Masuk ke MadangLur              │
-│    Dashboard penjual & panel admin   │
+│                 🍛                   │
+│          Masuk ke MadangLur          │
+│   Penjual, pembeli, atau admin...    │
 │                                      │
-│  ┌──────────────────────────────┐    │
-│  │ Akun demo — klik untuk isi   │    │  ← .demo-accounts (bg pandan-muda)
-│  │ Admin   admin/Admin123! [Pakai]   │
-│  │ Penjual 1  toko_osing  [Pakai]   │
-│  │ Penjual 2  warung_...  [Pakai]   │
-│  └──────────────────────────────┘    │
-│                                      │
-│  Username: [____________]            │
-│  Password: [____________]            │
-│  [         Masuk         ]           │
-│  (error message jika gagal)          │
+│  Username: [________________]        │
+│  Password: [________________]        │
+│  (pesan error per field)             │
+│  (alert umum jika gagal)             │
+│  [           Masuk          ]        │
+│  Belum punya akun? Daftar sekarang   │
+│  Admin demo: admin / Admin123!       │
+│  ── Demo lokal: data di browser ──   │
 └──────────────────────────────────────┘
 ```
 
 | Properti | Nilai |
 |---|---|
-| Background halaman | `var(--gula-jawa)` |
-| `.login-box` | bg putih, `border-radius var(--r-xl)`, max-width `400px`, shadow-pop |
-| Padding box | `2.5rem` |
+| Background halaman | `var(--santan)` |
+| `.auth-wrap` | grid center; `min-height: calc(100vh - 58px)` |
+| `.auth-card` | bg putih, `border-radius var(--r-lg)`, `max-width 460px`, `shadow-pop` |
+| Padding card | `clamp(1.5rem, 4vw, 2.25rem)` |
 
-**Demo accounts widget:**
-- Background `var(--pandan-muda)`, border-radius `var(--r-sm)`
-- Tiap baris: label role — `<code>` username — tombol "Pakai" (bg `var(--daun-salam)`)
-- Klik "Pakai" → isi otomatis field username & password
+**Field Masuk:** Username (`autocomplete="username"`), Password (`current-password`).
+**Field Daftar:** Pemilih peran (Penjual/Pembeli), Username, Nama Toko + Nomor WhatsApp
+(hanya penjual), Password, Ulangi Password.
 
-**Form fields:**
-- Label: font `.82rem` 600
-- Input: border `1.5px solid var(--wajan-muda)`; focus: border `var(--daun-salam)`, bg `#fff`
+**Pemilih peran (`.auth-role`):** dua kartu radio berdampingan (1 kolom di ≤600px). Kartu
+terpilih memakai border `var(--daun-salam)` + bg `var(--pandan-muda)`. Radio disembunyikan
+secara visual tetapi tetap fokusabel; fokus memakai outline `var(--kunyit)`.
 
-**Error message (`.login-error`):**
-- Muncul di bawah tombol Masuk
-- Teks warna `var(--cabe)`, font-size `.85rem`
-- Pesan: "Username atau password salah." atau "Akun Anda dinonaktifkan."
+| Field | Aturan demo | Pesan |
+|---|---|---|
+| Peran | hanya `penjual`/`pembeli` | "Pilih peran Penjual atau Pembeli." / "Akun admin tidak dapat didaftarkan dari halaman ini." |
+| Username | 3–20 karakter `[a-z0-9_]`, dinormalisasi lowercase | "Username 3–20 karakter: huruf, angka, atau garis bawah." |
+| Username | unik | "Username sudah digunakan." |
+| Nama Toko | wajib untuk penjual, 2–40 karakter | "Nama toko minimal 2 karakter." / "Nama toko maksimal 40 karakter." |
+| Nomor WA | opsional untuk penjual; `^62[0-9]{8,}$` | "Nomor WA harus diawali 62, mis. 6281234500001." |
+| Password | 6–72 karakter | "Password minimal 6 karakter." |
+| Ulangi Password | sama dengan password | "Konfirmasi password tidak cocok." |
+| Login gagal | — | "Username atau password salah." (generik, tidak membocorkan username) |
+| Login nonaktif | — | "Akun Anda dinonaktifkan. Hubungi admin." |
+
+**Error & state:**
+- Error per field: `.auth-field-error.is-show` di bawah input; input diberi `aria-invalid="true"`;
+  fokus otomatis ke field pertama yang salah.
+- Error umum: `.auth-alert.is-show` dengan `role="alert"` di atas tombol submit.
+- Tombol submit berubah menjadi "Memproses…" dan `disabled` saat menunggu hash.
+- Sukses: toast "Selamat datang, {username}!" lalu redirect sesuai peran
+  (admin → `#/admin`, penjual → `#/dashboard`, pembeli → `#/`).
+
+> Catatan keamanan: hash memakai SHA-256 + salt 16 byte via Web Crypto. Ini **bukan**
+> bcrypt dan bukan keamanan produksi; data akun berada di `localStorage` pengguna.
 
 ---
 
@@ -339,16 +406,23 @@ Implementasi: `const text = encodeURIComponent(\`Halo, saya ingin memesan ${prod
 
 State aktif sidebar: bg `var(--pandan-muda)`, teks `var(--daun-salam)`, border-left `3px solid var(--daun-salam)`
 
+> **Demo v0.6.0:** tidak ada sidebar atau tombol Keluar di dalam dashboard (Keluar ada di
+> navbar). Dashboard memakai layout satu kolom: eyebrow "Masuk sebagai @username · Penjual",
+> judul nama toko, deskripsi singkat, tombol **+ Tambah Produk**, toolbar demo
+> (Export/Import scoped), kartu **Profil Toko**, 4 stat card, lalu tabel produk milik penjual.
+> Tabel hanya memuat produk dengan `penjual_id` akun; 8 produk seed bersifat publik dan tidak
+> muncul di dashboard. Reset produk global dipindah ke panel admin.
+
 ### 5.2 Tab: Produk Saya
 
 **Stat cards (`.stat-row`):**
 
-| Stat | Kalkulasi |
-|---|---|
-| Total Produk | `COUNT(produk WHERE toko_id = JWT.tokoId)` |
-| Total Stok | `SUM(stok)` |
-| Kategori | `COUNT(DISTINCT kategori)` |
-| Unggulan | `COUNT(unggulan = true)` |
+| Stat | Kalkulasi target | Demo v0.6.0 |
+|---|---|---|
+| Total Produk | `COUNT(produk WHERE toko_id = JWT.tokoId)` | `produkMilik(products, penjual_id).length` |
+| Total Stok | `SUM(stok)` | `SUM(stok)` dari produk milik penjual |
+| Kategori | `COUNT(DISTINCT kategori)` | `Set(kategori).size` dari produk milik penjual |
+| Unggulan | `COUNT(unggulan = true)` | filter `unggulan === true` |
 
 Style `.stat-card`: bg putih, border-radius `var(--r-md)`, shadow-card, border-left `4px solid var(--daun-salam)`; angka: ff-head `2rem` 800; label: `.78rem` wajan.
 
@@ -370,68 +444,94 @@ Style `.stat-card`: bg putih, border-radius `var(--r-md)`, shadow-card, border-l
 **Tombol "+ Tambah Produk" (`.btn-add`):**
 - Ikon `+` SVG, bg `var(--daun-salam)`, teks putih, font-weight 600
 
-**Empty state tabel:** "Belum ada produk. Tambahkan produk pertama Anda!" — center, padding `2rem`.
+**Empty state tabel:** "Belum ada produk milik toko Anda." + hint bahwa produk contoh publik —
+center, padding `2rem`.
 
-### 5.3 Tab: Profil Toko
+### 5.3 Kartu: Profil Toko
 
-Form di dalam `.profil-card` (max-width `540px`, bg putih, shadow-card):
+> **Demo v0.6.0:** profil toko diimplementasikan sebagai kartu `.profile-card` di atas stat
+> card, bukan tab/sidebar. Field deskripsi toko belum ada. Menyimpan profil memanggil
+> `updateProfilPenjual()` lalu `sinkronProfilPenjual()` sehingga semua produk penjual memakai
+> nama toko + nomor WA terbaru.
+
+Form di dalam `.profile-card` (bg putih, shadow-card, border-left `4px solid var(--kunyit)`):
 
 | Field | Input type | Validasi |
 |---|---|---|
-| Nama Toko | text | Wajib, tidak boleh kosong |
-| Deskripsi | text | Opsional, maks. `200` karakter (sesuai DB) |
+| Nama Toko | text | Wajib, 2–40 karakter |
 | Nomor WhatsApp | text | Opsional; jika diisi wajib format `^62[0-9]{8,}$` |
 
 Hint WA: `Format: 62 diikuti nomor tanpa spasi atau tanda +` (font `.75rem`, warna `var(--wajan)`; `<code>` bg `var(--santan-2)`)
 
-Tombol "Simpan Perubahan": full-width, bg `var(--daun-salam)`
+Tombol "Simpan Profil": bg `var(--daun-salam)`, rata kanan (full-width di ≤600px).
+Setelah simpan: toast sukses menyebut jumlah produk yang nomornya ikut diperbarui.
 
 ---
 
 ## 6. Halaman: Panel Admin (`#/admin`)
 
+> **Demo v0.6.0:** panel admin sudah ada di `#/admin`, hanya untuk akun berperan admin.
+> Layout belum memakai sidebar: header + tombol **Reset Produk Demo** + stat card + tabel akun.
+> Form tambah penjual (ADM-02/06) belum diimplementasikan.
+
 ### 6.1 Layout
 
-Sama seperti Dashboard (sidebar + main), dengan label sidebar "Admin Panel" dan satu item menu "Kelola Penjual".
+Target memakai sidebar + main seperti dashboard, dengan label "Admin Panel" dan satu item menu
+"Kelola Penjual". Demo memakai layout satu kolom: eyebrow "Masuk sebagai @admin · Admin",
+judul **Panel Admin**, deskripsi singkat, tombol **Reset Produk Demo**, stat card, lalu tabel akun.
 
-### 6.2 Global Stats (`.global-stats`)
+### 6.2 Global Stats (`.stat-row`)
 
 Grid `auto-fit, minmax(160px, 1fr)`, gap `.75rem`:
 
 | Stat | Sumber |
 |---|---|
-| Total Penjual | `GET /api/users/summary` |
-| Total Produk | `GET /api/users/summary` |
-| Toko Aktif | `COUNT(users WHERE aktif = true AND role = 'penjual')` |
+| Total Penjual | Hitung akun `role = 'penjual'` |
+| Total Pembeli | Hitung akun `role = 'pembeli'` |
+| Produk Global | Jumlah seluruh produk di state |
+| Toko Aktif | `penjual.filter(aktif).length` |
 
-Style `.global-stat`: bg putih, border-left `4px solid var(--daun-salam)`, angka: ff-head `2rem` 800.
+Style `.stat-card`: bg putih, border-left `4px solid var(--daun-salam)`, angka: ff-head `2rem` 800.
 
-### 6.3 Tabel Penjual
+### 6.3 Tabel Akun
 
 | Kolom | Keterangan |
 |---|---|
 | Username | font-weight 600 |
-| Nama Toko | Nama toko miliknya |
-| Produk | Jumlah produk toko tersebut |
+| Peran | Pill Admin / Penjual / Pembeli |
+| Nama Toko | Nama toko miliknya; `—` untuk pembeli/admin |
+| Nomor WA | Nomor profil; `—` jika kosong |
+| Produk | Jumlah produk dengan `penjual_id` akun; `—` untuk non-penjual |
 | Status | Badge Aktif / Nonaktif |
-| Aksi | Tombol Nonaktifkan/Aktifkan + Hapus |
+| Aksi | Tombol Nonaktifkan/Aktifkan + Hapus; admin menampilkan "Dilindungi" |
+
+**Badge peran:**
+
+| Peran | Class | Style |
+|---|---|---|
+| Admin | `.role-pill.role-admin` | bg `var(--kunyit-muda)`, teks `var(--kunyit)` |
+| Penjual | `.role-pill.role-penjual` | bg `var(--pandan-muda)`, teks `var(--daun-salam)` |
+| Pembeli | `.role-pill.role-pembeli` | bg `var(--santan-2)`, teks `var(--wajan)` |
 
 **Badge status:**
 
 | Status | Class | Style |
 |---|---|---|
-| Aktif | `.status-aktif` | bg `var(--pandan-muda)`, teks `var(--daun-salam)` |
-| Nonaktif | `.status-nonaktif` | bg `var(--cabe-muda)`, teks `var(--cabe)` |
+| Aktif | `.status-badge.status-aktif` | bg `var(--pandan-muda)`, teks `var(--daun-salam)` |
+| Nonaktif | `.status-badge.status-nonaktif` | bg `var(--cabe-muda)`, teks `var(--cabe)` |
 
 **Tombol aksi:**
 
 | Tombol | Class | Kondisi tampil |
 |---|---|---|
-| "Nonaktifkan" | `.btn-deactivate` | Jika user aktif |
-| "Aktifkan" | `.btn-activate` | Jika user nonaktif |
-| "Hapus" | `.btn-del` | Selalu |
+| "Nonaktifkan" | `.btn-deactivate` | Jika akun aktif dan bukan admin |
+| "Aktifkan" | `.btn-activate` | Jika akun nonaktif dan bukan admin |
+| "Hapus" | `.btn-del` | Non-admin |
+| "Dilindungi" | `.text-muted` | Akun admin |
 
-Hapus: tampilkan `confirm()` dialog — "Hapus akun `{username}` beserta semua produk tokonya?"
+Hapus: `confirm()` — "Hapus akun `{username}` beserta semua produk tokonya?" Setelah setuju,
+akun dihapus dan `hapusProdukPenjual()` menghapus produk milik penjual tersebut.
+Reset produk: `confirm()` — "Reset semua produk ke data contoh? Produk tambahan semua akun akan hilang."
 
 ---
 
@@ -466,6 +566,8 @@ Layout form: Kategori & Stok dalam `.form-row` (2 kolom).
 - "Simpan Produk" (`.btn-save`): flex 2, bg `var(--daun-salam)`, teks putih
 
 ### 7.3 Modal Tambah Penjual (Admin)
+
+> **Demo v0.5.0:** belum diimplementasikan (panel admin belum ada).
 
 **Judul:** "Tambah Penjual Baru"
 
@@ -510,7 +612,9 @@ Layout: Username & Password dalam `.form-row`.
 
 ## 9. Validasi Client-side
 
-Semua pesan error ditampilkan via toast bertipe `error`, **bukan** alert browser atau inline field error.
+Pesan error produk ditampilkan via toast bertipe `error`, **bukan** alert browser. Form auth
+memakai pola berbeda: error per field ditampilkan inline di bawah input + ringkasan umum
+(`role="alert"`), lalu fokus pindah ke field pertama yang salah (aksesibilitas).
 
 | Field | Aturan | Pesan Error |
 |---|---|---|
@@ -519,12 +623,19 @@ Semua pesan error ditampilkan via toast bertipe `error`, **bukan** alert browser
 | Harga | angka, ≥ 0 | "Harga tidak valid (harus ≥ 0)." |
 | Stok | integer, ≥ 0 | "Stok tidak valid (harus bilangan bulat ≥ 0)." |
 | Nomor WA | regex `^62[0-9]{8,}$` | "Format nomor WA tidak valid. Gunakan format 628..." |
-| Username penjual | min 3 karakter | "Username minimal 3 karakter." |
-| Username penjual | unik | "Username sudah digunakan." |
-| Password penjual | min 6 karakter | "Password minimal 6 karakter." |
-| Nama toko (admin) | tidak kosong | "Nama toko wajib diisi." |
-| Login | username/password salah | "Username atau password salah." (dari API 401) |
-| Login | akun nonaktif | "Akun Anda dinonaktifkan." (dari API 401) |
+| Username | 3–20 karakter `[a-z0-9_]` | "Username 3–20 karakter: huruf, angka, atau garis bawah." |
+| Username | unik | "Username sudah digunakan." |
+| Password | 6–72 karakter | "Password minimal 6 karakter." |
+| Konfirmasi password | sama | "Konfirmasi password tidak cocok." |
+| Nama toko (daftar) | 2–40 karakter | "Nama toko minimal 2 karakter." |
+| Nomor WA (daftar) | opsional; `^62[0-9]{8,}$` | "Nomor WA harus diawali 62, mis. 6281234500001." |
+| Login | username/password salah | "Username atau password salah." (generik) |
+| Login | akun nonaktif | "Akun Anda dinonaktifkan." *(target; demo belum ada status)* |
+
+> **Demo v0.5.0:** pesan produk di atas dipakai di `validateProduk()`. Validasi nomor WA
+> (`^62[0-9]{8,}$`) dipakai saat memuat/mengimpor data (`storage.js`) **dan** pada form
+> daftar (`auth.js`). Form Profil Toko belum ada. Deskripsi dibatasi 300 karakter.
+> Pesan auth memakai `PESAN_AUTH` di `src/auth.js` agar konsisten antara validasi dan UI.
 
 ---
 
@@ -538,6 +649,11 @@ Semua pesan error ditampilkan via toast bertipe `error`, **bukan** alert browser
 | 375px–1440px | Semua halaman harus dapat digunakan (NF-02) |
 
 Filter bar: scroll horizontal tersembunyi (`scrollbar-width: none`) untuk pill kategori pada layar sempit.
+
+**Demo v0.5.0 — navbar & auth:**
+- ≤600px: navbar boleh `wrap`, tinggi `min-height: 58px`; tombol lebih rapat (`padding .32rem .55rem`);
+  `.nav-user` dipotong 8ch; badge role disembunyikan agar tidak berdesakan.
+- `.auth-card` memakai `width: min(100%, 460px)` sehingga tetap muat di 375px tanpa overflow.
 
 **Dashboard & Admin — breakpoint:**
 
@@ -562,10 +678,15 @@ Nav bar horizontal mobile (`.dash-sidebar` di <768px):
 | Label form eksplisit | `<label for="...">` terhubung ke `<input id="...">` |
 | State disabled tombol WA | `disabled` attribute pada `<button>`, bukan hanya CSS |
 | Tombol aksi ada teks | Jangan hanya ikon tanpa teks atau `aria-label` |
+| Error form auth | `aria-invalid="true"` + `aria-describedby` ke pesan field; ringkasan umum `role="alert"` |
+| Fokus setelah gagal submit | Fokus otomatis ke field pertama yang salah (auth) |
 
 ---
 
 ## 12. Placeholder Gambar (NF-08)
+
+> **Demo v0.5.0:** card memakai emoji kategori + background warna (`div.card-img`), tanpa
+> file SVG/gambar eksternal. Ini memenuhi semangat NF-08 (tanpa aset berhak cipta).
 
 Gambar produk menggunakan SVG placeholder warna per kategori (bukan gambar eksternal). Emoji kategori dirender sebagai teks di dalam `div.card-img`. URL gambar (`image_url`) di DB dibiarkan kosong string default.
 
@@ -583,26 +704,120 @@ Emoji per kategori:
 
 ## 13. Komponen — Daftar Lengkap
 
-| Komponen | File implementasi | Halaman digunakan |
+### 13.1 Implementasi demo v0.5.0 (aktual)
+
+| Komponen | File implementasi | Halaman |
 |---|---|---|
-| Navbar | `main.js` / `renderNav()` | Semua |
-| Hero | `pages/catalog.js` | Katalog |
-| Filter Bar (search + pills + sort) | `pages/catalog.js` | Katalog |
-| Product Card | `pages/catalog.js` | Katalog |
-| Empty State | `pages/catalog.js` | Katalog |
-| Login Form | `pages/login.js` | Login |
-| Demo Accounts Widget | `pages/login.js` | Login |
-| Sidebar Dashboard | `pages/dashboard.js` | Dashboard, Admin |
-| Stat Cards (penjual) | `pages/dashboard.js` | Dashboard |
-| Tabel Produk | `pages/dashboard.js` | Dashboard |
-| Form Profil Toko | `pages/dashboard.js` | Dashboard |
-| Global Stat Cards (admin) | `pages/admin.js` | Admin |
-| Tabel Penjual | `pages/admin.js` | Admin |
-| Modal Tambah/Edit Produk | `pages/dashboard.js` | Dashboard |
-| Modal Tambah Penjual | `pages/admin.js` | Admin |
-| Toast Notification | `main.js` / `toast()` | Semua |
+| Navbar (auth-aware) | `src/ui.js` → `renderNavbar(session)` | Semua |
+| Shell + route + guard + notice root | `src/main.js`, `src/router.js` | Semua |
+| Form Masuk / Daftar | `src/auth-page.js` → `mountMasuk()` / `mountDaftar()` | Auth |
+| Validasi + hash + sesi | `src/auth.js` | Auth |
+| Hero | `src/ui.js` → `renderHero()` | Katalog |
+| Filter Bar (search + pills + sort) | `src/ui.js` → `renderFilterBar()`; event di `src/main.js` | Katalog |
+| Product Card | `src/ui.js` → `renderCard()` | Katalog |
+| Loading / empty / error state | `src/ui.js` → `renderCatalog()` | Katalog |
+| Dashboard header + shell | `src/dashboard.js` → `mountDashboard(root, sesi)` | Dashboard |
+| Stat Cards | `src/dashboard.js` → `renderBody()`; hitung di `src/store.js` → `ringkasanProduk()` | Dashboard |
+| Tabel Produk | `src/dashboard.js` → `renderTable()` | Dashboard |
+| Modal Tambah/Edit Produk | `src/dashboard.js` → `renderModal()` / `openModal()` | Dashboard |
+| Toolbar Export/Import/Reset | `src/dashboard.js` → `ekspor()`, `imporBerkas()`, `resetDemoAksi()` | Dashboard |
+| Toast Notification | `src/ui.js` → `showToast()`; root di `src/main.js` | Semua |
+| Notice Banner | `src/ui.js` → `renderNotice()`; root di `src/main.js` | Semua |
+| Persistensi + validasi payload | `src/storage.js` | — |
+| Filter/sort/validasi/CRUD | `src/store.js` | Katalog + Dashboard |
+
+### 13.2 Pemetaan target (belum dikerjakan)
+
+| Komponen target | File target |
+|---|---|
+| Login Form + Demo Accounts Widget | `client/src/pages/login.js` |
+| Sidebar Dashboard | `client/src/pages/dashboard.js` |
+| Form Profil Toko | `client/src/pages/dashboard.js` |
+| Global Stat Cards + Tabel Penjual | `client/src/pages/admin.js` |
+| Modal Tambah Penjual | `client/src/pages/admin.js` |
+| Hero / Filter / Product Card / Empty State | `client/src/pages/catalog.js` |
+
+> Nama file di §13.2 mengikuti target monorepo di `SPEC.md` §7.2, bukan struktur demo.
+> Demo sudah punya form Masuk/Daftar lokal (`src/auth-page.js`), tetapi belum punya widget
+> akun demo, role, atau sesi JWT seperti target `login.js`.
 
 ---
 
-*Dokumen ini adalah spesifikasi UI tunggal untuk MadangLur v0.3.0.
-Perubahan desain harus diperbarui di sini sebelum diimplementasikan di kode.*
+## 14. Fitur Demo Tambahan (v0.5.0)
+
+Bagian ini mendokumentasikan komponen yang **tidak ada di target UI v0.3.0**, tetapi
+benar-benar dipakai di demo.
+
+### 14.1 Toolbar dashboard
+
+Posisi: di bawah header dashboard, di atas stat card.
+
+```
+[Export JSON] [Import JSON] [Reset Demo]
+```
+
+| Tombol | Class | Perilaku |
+|---|---|---|
+| Export JSON | `.btn-tool` | Unduh `madanglur-produk.json`; toast success |
+| Import JSON | `.btn-tool` | Buka file picker (`.json`); validasi → ganti data; toast success/error |
+| Reset Demo | `.btn-tool.btn-tool-danger` | `confirm()` → pulihkan 8 produk contoh; toast info |
+
+Style: border `1.5px solid var(--wajan-muda)`, bg putih, teks `var(--wajan)`, font `.8rem`
+600. Hover: border/teks `var(--daun-salam)`. Varian danger memakai `var(--cabe)`.
+
+Import bersifat **atomik**:
+
+1. `JSON.parse` di `try/catch` → gagal = toast "Impor gagal: file bukan JSON yang valid."
+2. `validasiDaftarProduk()` memeriksa seluruh array → satu item salah = seluruh import ditolak.
+3. Data lama baru diganti setelah validasi **dan** penulisan `localStorage` berhasil.
+4. Jika gagal, state dan `localStorage` lama tidak berubah.
+
+### 14.2 Notice banner
+
+Posisi: tepat di bawah navbar, full-width. Root: `#notice-root`.
+
+| Varian | Class | Penggunaan |
+|---|---|---|
+| Error | `.notice.notice-error` | Data tersimpan rusak; 8 produk contoh dipulihkan |
+| Info | `.notice.notice-info` | `localStorage` tidak tersedia/diblokir |
+
+Isi: teks pesan + tombol tutup `✕` (`.notice-close`, `aria-label="Tutup pemberitahuan"`).
+Banner error memakai `role="alert"`, banner info `role="status"`. Banner tetap tampil
+sampai ditutup atau state berubah.
+
+### 14.3 Auth lokal
+
+| Aspek | Demo v0.5.0 |
+|---|---|
+| Route | `#/masuk` (form masuk), `#/daftar` (registrasi mandiri) |
+| Penyimpanan akun | `localStorage` key `madanglur:users:v1` (array akun) |
+| Penyimpanan sesi | `localStorage` key `madanglur:session:v1` (id akun) |
+| Hash password | SHA-256(`${salt}:${sandi}`) + salt acak 16 byte (Web Crypto) |
+| Guard | Tanpa sesi → `#/dashboard` dialihkan ke `#/masuk` + toast info |
+| Redirect | Setelah masuk/daftar → `#/dashboard`; sudah masuk → form auth dialihkan |
+| Navbar | Dirender ulang saat route berubah dan setelah logout |
+| Logout | Hapus `madanglur:session:v1`; akun tetap; toast "Anda telah keluar." |
+
+Perilaku penting:
+- Username dinormalisasi ke lowercase dan harus unik.
+- Login gagal selalu memakai pesan generik, baik username tidak ada maupun password salah.
+- Data akun rusak (`JSON` invalid/struktur salah) tidak ditimpa; form menampilkan pesan
+  perbaikan yang menyebut key `madanglur:users:v1`.
+- `localStorage` diblokir → pendaftaran/masuk menolak dengan pesan penyimpanan.
+- Ini **bukan** JWT dan **bukan** keamanan produksi.
+
+### 14.4 Perbedaan lain dari target
+
+- Tidak ada sidebar, profil toko, panel admin, atau role/status akun nyata.
+- Auth demo berbasis `localStorage` (SHA-256 + salt), bukan JWT + bcrypt di server.
+- Tabel dashboard masih menampilkan katalog bersama; belum difilter `toko_id`.
+- Card katalog berukuran seragam; featured card span 2 kolom belum diterapkan.
+- Nomor WA kosong memakai `WHATSAPP_NUMBER` sebagai fallback, bukan tombol disabled.
+- Produk baru/import memakai nama toko + nomor WA akun yang sedang masuk; field toko
+  eksplisit pada payload import tetap dipertahankan.
+
+---
+
+*Dokumen ini adalah spesifikasi UI **target** untuk MadangLur.
+Status implementasi demo ada di `STATUS.md`; perubahan desain target harus diperbarui
+di sini sebelum diimplementasikan.*
